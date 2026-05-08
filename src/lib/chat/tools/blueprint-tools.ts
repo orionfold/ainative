@@ -136,12 +136,49 @@ export function blueprintTools(ctx: ToolContext) {
 
     defineTool(
       "create_blueprint",
-      "Create a custom workflow blueprint from YAML content. The YAML must include id, name, description, version, domain, tags, pattern, variables, and steps. When the blueprint id contains '--' (shape: '<app-id>--<artifact-id>'), the blueprint is also joined to the app's manifest. Use get_blueprint on an existing blueprint to see the expected structure.",
+      `Create a custom workflow blueprint from YAML content.
+
+Required top-level fields (all must be present):
+  - id (string, kebab-case; use '<app-id>--<artifact-id>' to attach to an app's manifest)
+  - name, description, version (string)
+  - domain ("work" | "personal")
+  - tags (string[])
+  - pattern ("sequence" | "planner-executor" | "checkpoint")
+  - variables (BlueprintVariable[]; can be empty array)
+  - steps (BlueprintStep[]; at least one)
+
+Each step requires: name, requiresApproval (boolean). One of {profileId+promptTemplate} OR {delayDuration}. Optional: expectedOutput, condition.
+
+Each variable requires: id, type ("text"|"textarea"|"select"|"number"|"boolean"|"file"), label, required (boolean). Optional: description, default, placeholder, options (for select), min/max (for number).
+
+Skeleton (copy & fill):
+\`\`\`yaml
+id: my-app--my-blueprint
+name: My Blueprint
+description: One-line summary of what this does
+version: "1.0.0"
+domain: work
+tags: [demo]
+pattern: sequence
+variables:
+  - id: topic
+    type: text
+    label: Topic
+    required: true
+steps:
+  - name: research
+    profileId: researcher
+    promptTemplate: "Research {{ topic }} and summarize."
+    requiresApproval: false
+    expectedOutput: "A 200-word summary"
+\`\`\`
+
+If unsure of the shape, call get_blueprint on a builtin first (e.g. "research-report") and pattern-match against it.`,
       {
         yaml: z
           .string()
           .describe(
-            "Full blueprint YAML content. Must validate against the blueprint schema."
+            "Full blueprint YAML content. Must validate against the blueprint schema (see tool description for required fields)."
           ),
       },
       async (args) => {

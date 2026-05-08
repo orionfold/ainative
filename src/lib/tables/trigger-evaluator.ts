@@ -11,7 +11,16 @@ import type { FilterSpec } from "./types";
 type TriggerEvent = "row_added" | "row_updated" | "row_deleted";
 
 interface ActionConfig {
+  /** Legacy: pre-instantiated workflow id. */
   workflowId?: string;
+  /**
+   * Modern: blueprint id, optionally `<appId>--<artifactId>` shape. When
+   * present, the trigger instantiates the blueprint per row and starts
+   * execution — same path as manifest-driven triggers.
+   */
+  blueprintId?: string;
+  /** Optional app id (defaults to the slug derived from blueprintId). */
+  appId?: string;
   title?: string;
   description?: string;
   projectId?: string;
@@ -51,7 +60,12 @@ export async function evaluateTriggers(
     // Fire the action
     try {
       const config = JSON.parse(trigger.actionConfig) as ActionConfig;
-      await fireAction(trigger.actionType as "run_workflow" | "create_task", config, rowData);
+      await fireAction(
+        trigger.actionType as "run_workflow" | "create_task",
+        config,
+        rowData,
+        { tableId, triggerId: trigger.id }
+      );
 
       // Update fire count
       db.update(userTableTriggers)
@@ -109,12 +123,24 @@ function matchesCondition(
 }
 
 /**
- * Fire a trigger action — create a task or start a workflow.
+ * Fire a trigger action — create a task or start a workflow / blueprint.
+ *
+ * `run_workflow` accepts two config shapes:
+ *   - `config.blueprintId`: instantiate the blueprint with row data as
+ *     variables and start it. This is the path the chat tool's
+ *     `create_trigger` produces and is the modern surface.
+ *   - `config.workflowId`: legacy path — start an already-instantiated
+ *     workflow via the API.
+ *
+ * Any other shape (e.g. `run_workflow` with neither field) is logged as
+ * an unhandled dispatch so the silent no-op surfaces in dev logs instead
+ * of disappearing — the prior behavior masked F13 in HANDOFF.md.
  */
 async function fireAction(
   actionType: "run_workflow" | "create_task",
   config: ActionConfig,
-  rowData: Record<string, unknown>
+  rowData: Record<string, unknown>,
+  meta: { tableId: string; triggerId: string }
 ): Promise<void> {
   if (actionType === "create_task") {
     const description = config.description
@@ -130,8 +156,37 @@ async function fireAction(
         projectId: config.projectId ?? null,
       }),
     });
-  } else if (actionType === "run_workflow" && config.workflowId) {
-    // Start workflow execution
+    return;
+  }
+
+  if (actionType === "run_workflow" && config.blueprintId) {
+    const blueprintId = config.blueprintId;
+    const appId = config.appId ?? deriveAppIdFromBlueprintId(blueprintId);
+    if (!appId) {
+      console.warn(
+        `[triggers] run_workflow trigger ${meta.triggerId} has blueprintId="${blueprintId}" but no appId could be derived (no '--' in id and no config.appId). Dispatch skipped.`
+      );
+      return;
+    }
+    // We don't have a stable per-row id at this layer (evaluateTriggers
+    // is called with rowData but no rowId). Synthesize a placeholder so
+    // _contextRowId is still threaded for traceability; manifest-driven
+    // triggers (which DO have a rowId) carry the real row id.
+    const rowId = `trigger-${meta.triggerId}-${Date.now()}`;
+    const { dispatchBlueprintForRow } = await import(
+      "@/lib/apps/manifest-trigger-dispatch"
+    );
+    await dispatchBlueprintForRow({
+      appId,
+      blueprintId,
+      tableId: meta.tableId,
+      rowId,
+      rowData,
+    });
+    return;
+  }
+
+  if (actionType === "run_workflow" && config.workflowId) {
     await fetch(`${getBaseUrl()}/api/workflows/${config.workflowId}/execute`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -139,7 +194,22 @@ async function fireAction(
         context: `Table row data: ${JSON.stringify(rowData, null, 2)}`,
       }),
     });
+    return;
   }
+
+  // Catch-all: surface unhandled shapes so the trigger doesn't silently
+  // no-op like F13. fireCount still increments at the call site so the
+  // operator can see the trigger fired but produced nothing.
+  console.warn(
+    `[triggers] Unhandled action shape for trigger ${meta.triggerId} (table=${meta.tableId}): actionType=${actionType}, config keys=${JSON.stringify(Object.keys(config))}`
+  );
+}
+
+/** Extract the app id prefix from a `<appId>--<artifactId>` blueprint id. */
+function deriveAppIdFromBlueprintId(blueprintId: string): string | null {
+  const idx = blueprintId.indexOf("--");
+  if (idx <= 0) return null;
+  return blueprintId.slice(0, idx);
 }
 
 function getBaseUrl(): string {

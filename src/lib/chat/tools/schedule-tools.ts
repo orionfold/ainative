@@ -45,7 +45,14 @@ export function scheduleTools(ctx: ToolContext) {
 
     defineTool(
       "create_schedule",
-      'Create a new scheduled recurring task. Accepts human-friendly intervals like "every 30 minutes", "hourly", "daily at 9am". When creating a schedule as part of an app composition, pass appId so the schedule is linked to the app project and listed in the app manifest.',
+      `Create a new scheduled recurring task. The interval is parsed in this order:
+  1. Natural language (e.g. "every 30 minutes", "hourly", "daily at 9am", "weekdays at 4:30pm", "every Monday at 9am")
+  2. Shorthand (e.g. "5m", "2h", "1d")
+  3. Raw 5-field cron (e.g. "30 16 * * 1-5" for 4:30pm on weekdays)
+
+If your phrasing fails the first two layers, fall back to a 5-field cron expression (minute hour day-of-month month day-of-week). Avoid 6-field cron with seconds — the parser does not accept it.
+
+When creating a schedule as part of an app composition, pass appId so the schedule is linked to the app project and listed in the app manifest.`,
       {
         name: z.string().min(1).max(200).describe("Schedule name"),
         prompt: z.string().min(1).max(2000).describe("The prompt to execute on each firing"),
@@ -53,7 +60,7 @@ export function scheduleTools(ctx: ToolContext) {
           .string()
           .min(1)
           .describe(
-            'Human-friendly interval (e.g. "every 30 minutes", "hourly", "every 2 hours", "daily")'
+            'Interval in NL ("every 30 minutes", "daily at 9am"), shorthand ("5m", "2h", "1d"), or 5-field cron ("30 16 * * 1-5"). 6-field cron with seconds is not supported.'
           ),
         projectId: z
           .string()

@@ -229,8 +229,100 @@ import { evaluateManifestTriggers } from "@/lib/apps/manifest-trigger-dispatch";
 
 // ── Row CRUD ─────────────────────────────────────────────────────────
 
+/**
+ * Normalize row data so keys always match a column's canonical `name`,
+ * not its human-friendly `displayName`. Callers (notably the LLM via the
+ * `add_rows` chat tool) sometimes use the displayName they saw in the
+ * schema preview — that produces rows whose values are invisible to the
+ * spreadsheet renderer (which reads `data[col.name]`) and to triggers
+ * (which filter by canonical name). Rewriting at this single chokepoint
+ * also covers `updateRow` and any future writers without each having to
+ * remember the rule.
+ *
+ * Rules (in order of precedence):
+ *   1. Key already matches a canonical column.name → pass through unchanged.
+ *   2. Key matches a column.displayName → rewrite to that column's name.
+ *      If both a canonical-name entry and a display-name entry exist for
+ *      the same column, the canonical entry wins (the display-name copy
+ *      is dropped) — the LLM occasionally sends both.
+ *   3. Key matches case-insensitively against a column.displayName → rewrite.
+ *      Catches `"ticker"` → `Ticker` style mismatches.
+ *   4. Key matches nothing → pass through unchanged. We don't drop unknown
+ *      keys; downstream readers will simply ignore them, and preserving them
+ *      keeps the door open for ad-hoc metadata.
+ */
+function normalizeRowKeysAgainstColumns(
+  data: Record<string, unknown>,
+  columns: Array<{ name: string; displayName: string }>
+): Record<string, unknown> {
+  if (columns.length === 0) return data;
+
+  const canonicalNames = new Set(columns.map((c) => c.name));
+  const displayToName = new Map<string, string>();
+  const lowerDisplayToName = new Map<string, string>();
+  for (const c of columns) {
+    if (c.displayName && c.displayName !== c.name) {
+      displayToName.set(c.displayName, c.name);
+      lowerDisplayToName.set(c.displayName.toLowerCase(), c.name);
+    }
+  }
+
+  const out: Record<string, unknown> = {};
+  for (const [rawKey, value] of Object.entries(data)) {
+    if (canonicalNames.has(rawKey)) {
+      out[rawKey] = value;
+      continue;
+    }
+    const exact = displayToName.get(rawKey);
+    if (exact) {
+      // Preserve any pre-existing canonical entry over a display-name dupe.
+      if (!(exact in out)) out[exact] = value;
+      continue;
+    }
+    const lower = lowerDisplayToName.get(rawKey.toLowerCase());
+    if (lower) {
+      if (!(lower in out)) out[lower] = value;
+      continue;
+    }
+    // Unknown key: keep as-is so we don't silently lose data.
+    out[rawKey] = value;
+  }
+
+  return out;
+}
+
+/**
+ * Internal: load minimal column info for normalization without re-parsing
+ * the full schema each row. Returns [] if the table has no column rows yet
+ * (which makes normalization a no-op, the safe behavior).
+ */
+function loadColumnsForNormalization(
+  tableId: string
+): Array<{ name: string; displayName: string }> {
+  return db
+    .select({
+      name: userTableColumns.name,
+      displayName: userTableColumns.displayName,
+    })
+    .from(userTableColumns)
+    .where(eq(userTableColumns.tableId, tableId))
+    .all();
+}
+
+/** Exported for the row-key backfill script. */
+export function _normalizeRowKeysAgainstColumns(
+  data: Record<string, unknown>,
+  columns: Array<{ name: string; displayName: string }>
+): Record<string, unknown> {
+  return normalizeRowKeysAgainstColumns(data, columns);
+}
+
 export async function addRows(tableId: string, rows: AddRowInput[]) {
   const now = new Date();
+
+  // Load column metadata once so every row in this batch normalizes
+  // against the same schema snapshot.
+  const cols = loadColumnsForNormalization(tableId);
 
   // Get current max position
   const maxPos = db
@@ -240,8 +332,13 @@ export async function addRows(tableId: string, rows: AddRowInput[]) {
     .get();
   let nextPosition = (maxPos?.maxPos ?? -1) + 1;
 
+  const normalizedRows: AddRowInput[] = rows.map((row) => ({
+    ...row,
+    data: normalizeRowKeysAgainstColumns(row.data, cols),
+  }));
+
   const ids: string[] = [];
-  for (const row of rows) {
+  for (const row of normalizedRows) {
     const id = randomUUID();
     ids.push(id);
     await db.insert(userTableRows).values({
@@ -258,10 +355,12 @@ export async function addRows(tableId: string, rows: AddRowInput[]) {
   // Update denormalized row count
   await updateRowCount(tableId);
 
-  // Fire triggers for new rows (fire-and-forget)
-  for (const [i] of rows.entries()) {
-    evaluateTriggers(tableId, "row_added", rows[i].data).catch(() => {});
-    evaluateManifestTriggers(tableId, ids[i], rows[i].data).catch(() => {});
+  // Fire triggers for new rows (fire-and-forget). Use the normalized
+  // payload so trigger conditions and manifest variables resolve against
+  // canonical column names — same contract as the persisted row.
+  for (const [i] of normalizedRows.entries()) {
+    evaluateTriggers(tableId, "row_added", normalizedRows[i].data).catch(() => {});
+    evaluateManifestTriggers(tableId, ids[i], normalizedRows[i].data).catch(() => {});
   }
 
   return ids;
@@ -301,9 +400,14 @@ export async function updateRow(rowId: string, input: UpdateRowInput) {
   // Snapshot before mutation (non-blocking)
   try { snapshotBeforeUpdate(rowId, existing.tableId, existing.data, "user"); } catch { /* history is non-critical */ }
 
-  // Merge new data with existing data
+  // Merge new data with existing data — normalize the patch first so any
+  // display_name keys in the partial update collapse onto the canonical
+  // names already on disk, instead of writing a duplicate display_name
+  // entry alongside the canonical one.
+  const cols = loadColumnsForNormalization(existing.tableId);
+  const normalizedPatch = normalizeRowKeysAgainstColumns(input.data, cols);
   const existingData = JSON.parse(existing.data) as Record<string, unknown>;
-  const mergedData = { ...existingData, ...input.data };
+  const mergedData = { ...existingData, ...normalizedPatch };
 
   await db
     .update(userTableRows)

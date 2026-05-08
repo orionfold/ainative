@@ -3,6 +3,7 @@ import yaml from "js-yaml";
 import { ManifestPaneBody } from "@/components/apps/kit-view/manifest-pane-body";
 import { LastRunCard } from "@/components/apps/last-run-card";
 import { ErrorTimeline } from "@/components/workflows/error-timeline";
+import type { ViewConfig } from "@/lib/apps/registry";
 import type {
   KitDefinition,
   KitProjection,
@@ -11,9 +12,12 @@ import type {
   ViewModel,
 } from "../types";
 
+type KpiSpec = NonNullable<ViewConfig["bindings"]["kpis"]>[number];
+
 interface WorkflowHubProjection extends KitProjection {
   blueprintIds: string[];
   scheduleIds: string[];
+  kpiSpecs: KpiSpec[];
   manifestYaml: string;
 }
 
@@ -31,9 +35,16 @@ export const workflowHubKit: KitDefinition = {
   id: "workflow-hub",
 
   resolve(input: ResolveInput): KitProjection {
+    // Carry through manifest-declared KPIs so loadRuntimeState's
+    // `loadEvaluatedKpis(projection.kpiSpecs)` finds them. Without this,
+    // even a manifest with view.bindings.kpis renders no tiles. Workflow
+    // Hub deliberately does NOT synthesize defaults — apps that pick this
+    // kit are typically multi-blueprint hubs where auto-inferring KPIs
+    // from a single hero table is meaningless.
     const projection: WorkflowHubProjection = {
       blueprintIds: input.manifest.blueprints.map((b) => b.id),
       scheduleIds: input.manifest.schedules.map((s) => s.id),
+      kpiSpecs: input.manifest.view?.bindings?.kpis ?? [],
       manifestYaml: yaml.dump(input.manifest, { lineWidth: 100 }),
     };
     return projection;

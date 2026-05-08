@@ -56,48 +56,84 @@ export async function evaluateManifestTriggers(
   const matches = findMatchingSubscriptions(apps, tableId);
 
   for (const { appId, blueprintId } of matches) {
-    try {
-      const { instantiateBlueprint } = await import(
-        "@/lib/workflows/blueprints/instantiator"
-      );
-      const { executeWorkflow } = await import("@/lib/workflows/engine");
+    await dispatchBlueprintForRow({
+      appId,
+      blueprintId,
+      tableId,
+      rowId,
+      rowData,
+    });
+  }
+}
 
-      const variables = buildVariables(blueprintId, rowData);
+/**
+ * Shared row-triggered blueprint dispatch.
+ *
+ * Single chokepoint for all paths that fire a blueprint in response to a
+ * row event: manifest-driven subscriptions (`evaluateManifestTriggers`)
+ * AND UI-configured triggers stored in `user_table_triggers`
+ * (`trigger-evaluator.ts:fireAction` for `actionType=run_workflow` with
+ * `config.blueprintId`).
+ *
+ * Centralizing this means error handling, notification writes, and
+ * variable construction stay consistent — and any future trigger source
+ * (cron, webhook, etc.) can call the same helper.
+ *
+ * Returns `{ workflowId }` on success, `null` on failure (failure already
+ * logged + recorded in `notifications` so callers don't need to re-handle).
+ */
+export async function dispatchBlueprintForRow(input: {
+  appId: string;
+  blueprintId: string;
+  tableId: string;
+  rowId: string;
+  rowData: Record<string, unknown>;
+}): Promise<{ workflowId: string } | null> {
+  const { appId, blueprintId, tableId, rowId, rowData } = input;
+  try {
+    const { instantiateBlueprint } = await import(
+      "@/lib/workflows/blueprints/instantiator"
+    );
+    const { executeWorkflow } = await import("@/lib/workflows/engine");
 
-      const { workflowId } = await instantiateBlueprint(
-        blueprintId,
-        variables,
-        appId,
-        { _contextRowId: rowId }
-      );
+    const variables = buildVariables(blueprintId, rowData);
 
-      // Fire-and-forget — workflow may run for minutes
-      executeWorkflow(workflowId).catch((err) => {
-        console.error(
-          `[manifest-trigger-dispatch] executeWorkflow ${workflowId} failed:`,
-          err
-        );
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+    const { workflowId } = await instantiateBlueprint(
+      blueprintId,
+      variables,
+      appId,
+      { _contextRowId: rowId }
+    );
+
+    // Fire-and-forget — workflow may run for minutes
+    executeWorkflow(workflowId).catch((err) => {
       console.error(
-        `[manifest-trigger-dispatch] dispatch failed for app=${appId} blueprint=${blueprintId}:`,
+        `[manifest-trigger-dispatch] executeWorkflow ${workflowId} failed:`,
         err
       );
-      try {
-        await db.insert(notifications).values({
-          id: crypto.randomUUID(),
-          taskId: null,
-          type: "task_failed",
-          title: `Trigger failure in app "${appId}"`,
-          body: `Blueprint "${blueprintId}" failed for table "${tableId}" row "${rowId}": ${message}`,
-          read: false,
-          createdAt: new Date(),
-        });
-      } catch (nerr) {
-        console.error(`[manifest-trigger-dispatch] notification write failed:`, nerr);
-      }
+    });
+
+    return { workflowId };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[manifest-trigger-dispatch] dispatch failed for app=${appId} blueprint=${blueprintId}:`,
+      err
+    );
+    try {
+      await db.insert(notifications).values({
+        id: crypto.randomUUID(),
+        taskId: null,
+        type: "task_failed",
+        title: `Trigger failure in app "${appId}"`,
+        body: `Blueprint "${blueprintId}" failed for table "${tableId}" row "${rowId}": ${message}`,
+        read: false,
+        createdAt: new Date(),
+      });
+    } catch (nerr) {
+      console.error(`[manifest-trigger-dispatch] notification write failed:`, nerr);
     }
+    return null;
   }
 }
 

@@ -54,6 +54,51 @@ describe("workflowHubKit.resolve", () => {
     expect(proj.blueprintIds).toEqual([]);
     expect(proj.scheduleIds).toEqual([]);
   });
+
+  // HANDOFF.md F3: workflow-hub kit was dropping manifest-declared KPIs because
+  // its projection did not surface them as `kpiSpecs`, so loadRuntimeState's
+  // `loadEvaluatedKpis(projection.kpiSpecs ?? [])` always saw [].
+  it("surfaces view.bindings.kpis as kpiSpecs for the runtime evaluator", () => {
+    const app = makeApp({
+      tables: [{ id: "tbl-1" }],
+      view: {
+        kit: "workflow-hub",
+        bindings: {
+          kpis: [
+            {
+              id: "total-market-value",
+              label: "Total Market Value",
+              source: { kind: "tableSum", table: "tbl-1", column: "market_value" },
+              format: "currency",
+            },
+            {
+              id: "total-positions",
+              label: "Total Positions",
+              source: { kind: "tableCount", table: "tbl-1" },
+              format: "int",
+            },
+          ],
+        },
+      },
+    });
+    const proj = workflowHubKit.resolve({
+      manifest: app.manifest,
+      columns: [],
+    }) as Record<string, unknown>;
+    expect(proj.kpiSpecs).toHaveLength(2);
+    expect((proj.kpiSpecs as Array<{ id: string }>)[0].id).toBe(
+      "total-market-value"
+    );
+  });
+
+  it("defaults kpiSpecs to [] when the manifest has no view.bindings.kpis", () => {
+    const app = makeApp({});
+    const proj = workflowHubKit.resolve({
+      manifest: app.manifest,
+      columns: [],
+    }) as Record<string, unknown>;
+    expect(proj.kpiSpecs).toEqual([]);
+  });
 });
 
 describe("workflowHubKit.buildModel", () => {
