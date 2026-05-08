@@ -192,7 +192,7 @@ If unsure of the shape, call get_blueprint on a builtin first (e.g. "research-re
             await import("@/lib/apps/compose-integration");
           const appId = extractAppIdFromArtifactId(blueprint.id);
           if (appId) {
-            await ensureAppProject(appId, blueprint.name);
+            await ensureAppProject(appId);
             upsertAppManifest(appId, {
               kind: "blueprint",
               id: blueprint.id,

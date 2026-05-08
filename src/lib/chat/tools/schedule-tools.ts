@@ -124,7 +124,7 @@ When creating a schedule as part of an app composition, pass appId so the schedu
             const { ensureAppProject } = await import(
               "@/lib/apps/compose-integration"
             );
-            const { projectId } = await ensureAppProject(args.appId, args.name);
+            const { projectId } = await ensureAppProject(args.appId);
             effectiveProjectId = projectId;
           }
           const now = new Date();

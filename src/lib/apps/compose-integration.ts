@@ -33,10 +33,16 @@ function titleCase(slug: string): string {
  * Upsert a projects row so composed primitives have a real DB parent.
  * The project id is the app-id slug directly so compose tools can thread
  * it through without a lookup. Idempotent.
+ *
+ * Name resolution: prefer the app manifest's `name` (canonical app label)
+ * over a slug-cased fallback. Compose tool callers used to pass the
+ * artifact's display name (profile/blueprint/table name) here, which
+ * caused the project to be named after a single primitive rather than
+ * the app itself (F8). The manifest is the source of truth.
  */
 export async function ensureAppProject(
   appId: string,
-  displayName?: string
+  appsDir: string = getAinativeAppsDir()
 ): Promise<{ projectId: string; created: boolean }> {
   const existing = await db
     .select()
@@ -48,13 +54,27 @@ export async function ensureAppProject(
   const now = new Date();
   await db.insert(projects).values({
     id: appId,
-    name: displayName ?? titleCase(appId),
+    name: resolveAppName(appId, appsDir),
     description: "Composed app",
     status: "active",
     createdAt: now,
     updatedAt: now,
   });
   return { projectId: appId, created: true };
+}
+
+function resolveAppName(appId: string, appsDir: string): string {
+  const manifestPath = path.join(appsDir, appId, "manifest.yaml");
+  if (fs.existsSync(manifestPath)) {
+    try {
+      const parsed = yaml.load(fs.readFileSync(manifestPath, "utf-8"));
+      const result = AppManifestSchema.safeParse(parsed);
+      if (result.success) return result.data.name;
+    } catch {
+      // malformed yaml — fall through to slug-cased default
+    }
+  }
+  return titleCase(appId);
 }
 
 const BUCKETS: Record<

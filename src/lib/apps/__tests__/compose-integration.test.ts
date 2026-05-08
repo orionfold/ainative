@@ -44,16 +44,19 @@ describe("extractAppIdFromArtifactId", () => {
 });
 
 describe("ensureAppProject", () => {
+  let tmpAppsDir: string;
+  beforeEach(() => {
+    tmpAppsDir = makeTmp();
+  });
   afterEach(async () => {
     await db.delete(projects).where(eq(projects.id, "compose-int-test-app"));
     await db.delete(projects).where(eq(projects.id, "another-test-app"));
+    await db.delete(projects).where(eq(projects.id, "manifest-named-app"));
+    fs.rmSync(tmpAppsDir, { recursive: true, force: true });
   });
 
-  it("creates a projects row on first call", async () => {
-    const result = await ensureAppProject(
-      "compose-int-test-app",
-      "Compose Int Test App"
-    );
+  it("creates a projects row named from the slug when no manifest exists", async () => {
+    const result = await ensureAppProject("compose-int-test-app", tmpAppsDir);
     expect(result.projectId).toBe("compose-int-test-app");
     expect(result.created).toBe(true);
 
@@ -68,21 +71,38 @@ describe("ensureAppProject", () => {
   });
 
   it("is idempotent — second call does not duplicate", async () => {
-    const first = await ensureAppProject("compose-int-test-app");
-    const second = await ensureAppProject("compose-int-test-app");
+    const first = await ensureAppProject("compose-int-test-app", tmpAppsDir);
+    const second = await ensureAppProject("compose-int-test-app", tmpAppsDir);
     expect(first.created).toBe(true);
     expect(second.created).toBe(false);
     expect(second.projectId).toBe(first.projectId);
   });
 
-  it("derives a displayName from the slug when omitted", async () => {
-    const { projectId } = await ensureAppProject("another-test-app");
+  it("derives the slug-cased name when no manifest exists for another app", async () => {
+    const { projectId } = await ensureAppProject("another-test-app", tmpAppsDir);
     const row = await db
       .select()
       .from(projects)
       .where(eq(projects.id, projectId))
       .get();
     expect(row?.name).toBe("Another Test App");
+  });
+
+  it("prefers the manifest's name over the slug-cased label when manifest exists (F8)", async () => {
+    upsertAppManifest(
+      "manifest-named-app",
+      { kind: "profile", id: "manifest-named-app--coach" },
+      "Portfolio Manager",
+      tmpAppsDir
+    );
+
+    const { projectId } = await ensureAppProject("manifest-named-app", tmpAppsDir);
+    const row = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .get();
+    expect(row?.name).toBe("Portfolio Manager");
   });
 });
 

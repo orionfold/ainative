@@ -86,7 +86,7 @@ export function profileTools(ctx: ToolContext) {
           const appId = extractAppIdFromArtifactId(args.config.id);
           if (appId) {
             createPromotedProfile(args.config, args.skillMd);
-            await ensureAppProject(appId, args.config.name);
+            await ensureAppProject(appId);
             upsertAppManifest(appId, {
               kind: "profile",
               id: args.config.id,

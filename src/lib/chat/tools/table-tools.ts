@@ -412,7 +412,7 @@ Returns the workflowId so the caller can poll status, plus the rowCount that wil
             const { ensureAppProject } = await import(
               "@/lib/apps/compose-integration"
             );
-            const { projectId } = await ensureAppProject(args.appId, args.name);
+            const { projectId } = await ensureAppProject(args.appId);
             effectiveProjectId = projectId;
           }
 

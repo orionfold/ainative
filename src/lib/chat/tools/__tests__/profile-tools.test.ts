@@ -46,7 +46,7 @@ vi.mock("@/lib/apps/compose-integration", () => ({
     if (idx <= 0) return null;
     return id.slice(0, idx);
   },
-  ensureAppProject: (...args: unknown[]) => ensureAppProjectMock(...(args as [string, string?])),
+  ensureAppProject: (...args: unknown[]) => ensureAppProjectMock(...(args as [string])),
   upsertAppManifest: (...args: unknown[]) => upsertAppManifestMock(...args),
 }));
 
@@ -121,10 +121,7 @@ describe("create_profile compose-aware routing", () => {
     });
     expect(createProfileMock).not.toHaveBeenCalled();
     expect(createPromotedProfileMock).toHaveBeenCalledTimes(1);
-    expect(ensureAppProjectMock).toHaveBeenCalledWith(
-      "reading-radar",
-      "Reading Radar Manager"
-    );
+    expect(ensureAppProjectMock).toHaveBeenCalledWith("reading-radar");
     expect(upsertAppManifestMock).toHaveBeenCalledTimes(1);
     const manifestCall = upsertAppManifestMock.mock.calls[0];
     expect(manifestCall[0]).toBe("reading-radar");
