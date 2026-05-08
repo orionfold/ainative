@@ -24,7 +24,7 @@ export function HeaderSlotView({ slot, manifestPane }: HeaderSlotProps) {
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight truncate" title={title}>
+        <h1 className="text-xl font-semibold tracking-tight line-clamp-2" title={title}>
           {title}
         </h1>
         {description && (
