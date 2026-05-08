@@ -1,8 +1,8 @@
-# Handoff: 5 priorities from app-builder smoke shipped — F1 P0 + F3/F5/F13 P1
+# Handoff: 4 P3 quick wins shipped + 0.14.2 release — F8/F11/F12/F7
 
-**Created:** 2026-05-08 after executing the F1/F3/F5/F13 priorities from the prior handoff (archived at `.archive/handoff/2026-05-08-execute-handoff-archived.md`). All four fixes have unit tests and were verified live against `ainative-business@0.14.1` on dev server PID 28796.
+**Created:** 2026-05-08 after a foreground "ship F8 quick win" → "continue" → "commit and push then continue" autopilot run. All four fixes have unit tests; nothing was browser-smoked this session (none of the touched modules is in the runtime-registry path that mandates smoke per CLAUDE.md). Prior handoff archived at `.archive/handoff/2026-05-08-f1-f3-f5-f13-shipped-archived.md`.
 
-**Status:** All 5 prioritized findings shipped. 11 new tests + 665 total passing across `data/`, `chat/tools/`, `tables/`, `apps/`, `workflows/`. The handoff smoke's two composed apps (Portfolio Manager, Marketing Campaign Tracker) now render correctly and trigger their blueprints end-to-end.
+**Status:** 6 commits pushed to `origin/main` (`56c3f9a1..fdf41bec`); released as `ainative-business@0.14.2` (version bump committed but **not published to npm** — see "Release decision" below). 2147 unit tests pass across the affected surfaces; the 8 pre-existing failures from `main` are unchanged (router, settings, api-version-window, phase-5-blueprints-validity).
 
 ---
 
@@ -10,60 +10,69 @@
 
 | ID | Severity | What | Files | Verification |
 |----|----|----|----|----|
-| F1 | P0 | Row data normalized to canonical column names at `addRows`/`updateRow` chokepoint; 8 stranded Portfolio Manager rows backfilled. The `add_rows` chat tool was passing the agent's display_name keys (e.g. `"Cost Basis ($)"`) straight to disk — but the renderer reads `data[col.name]` (e.g. `cost_basis`), so every cell rendered as "—". CSV import path already normalized via `data[col.name] = ...`; the data layer now guarantees the same contract for every writer. | `src/lib/data/tables.ts`, `scripts/backfill-row-key-normalization.ts`, `src/lib/data/__tests__/tables-row-key-normalization.test.ts` | API insert with display_name keys lands as canonical in DB; Portfolio cells render real values. Latent bugs in trigger conditions and blueprint variable resolution (which also depend on canonical names) get fixed by the same patch. |
-| F3 | P1 | `workflow-hub` kit projection now surfaces `view.bindings.kpis` as `kpiSpecs` so `loadEvaluatedKpis(projection.kpiSpecs ?? [])` finds them. Other kits (tracker/coach/ledger) already did this; workflow-hub was the outlier. | `src/lib/apps/view-kits/kits/workflow-hub.ts`, `src/lib/apps/view-kits/__tests__/workflow-hub.test.ts` | `/apps/portfolio-manager` HTML now contains 3 kpi-tile markers + manifest's KPI labels (Total Market Value / Total Positions / Largest Position %). |
-| F5 | P1 | `create_blueprint` and `create_schedule` chat tool descriptions expanded with required-fields list, copy-pastable YAML skeleton, and explicit cron-format fallback for schedule. Pure docs/JSON-schema win — no runtime change. | `src/lib/chat/tools/blueprint-tools.ts`, `src/lib/chat/tools/schedule-tools.ts` | Agent should succeed first try (saves the ~30s × 2-retries-per-app the handoff observed). |
-| F13 | P1 | `trigger-evaluator.ts:fireAction` now recognizes `config.blueprintId` (the chat tool's modern surface), routing through a new shared `dispatchBlueprintForRow` helper extracted from `manifest-trigger-dispatch.ts`. Catch-all `console.warn` added for unhandled action shapes so silent no-ops surface in dev logs. | `src/lib/apps/manifest-trigger-dispatch.ts`, `src/lib/tables/trigger-evaluator.ts`, `src/lib/tables/__tests__/trigger-evaluator-blueprint-dispatch.test.ts` | Live trigger `299f6bc1-...` fired correctly: fire_count 1→2, task created, workflow `881d043b-340d-4201-9902-ad93d96c9dcc` instantiated with status=active. |
+| F8 | P3 | `ensureAppProject()` now resolves project name from the app manifest (or `titleCase(appId)` fallback), not from a caller-supplied artifact name. The `displayName` parameter is removed; all 4 chat-tool callers updated. Closes the bug class for any future writer (plugins, MCP, future tools) — not just the chat tools that surfaced it. | `src/lib/apps/compose-integration.ts`, `src/lib/chat/tools/{profile,blueprint,table,schedule}-tools.ts`, `src/lib/apps/__tests__/compose-integration.test.ts`, `src/lib/chat/tools/__tests__/profile-tools.test.ts` | New regression test asserts manifest's name wins over a slug-cased fallback even when the manifest carries an unrelated label. Existing 3 tests adapted to the new signature. |
+| F11 | P3 | `/apps/<id>` H1 wraps to 2 lines (`line-clamp-2`) instead of single-line ellipsis. `title` attr preserved for hover-tooltip. | `src/components/apps/kit-view/slots/header.tsx` | Pure CSS change. No test added — visual-only. |
+| F12 | P3 | "Delete app" moved out of the always-visible toolbar into a kebab `MoreHorizontal` dropdown. Existing `ConfirmDialog` flow preserved; two-layer safety (out-of-eyeline + confirm) for an irreversible action. Test setup gained `hasPointerCapture`/`releasePointerCapture` stubs alongside the existing `scrollIntoView` + `ResizeObserver` stubs so Radix DropdownMenu opens in JSDOM — unblocks **all** future Radix-dropdown / Select / Popover component tests. | `src/components/apps/app-detail-actions.tsx`, `src/components/apps/__tests__/app-detail-actions.test.tsx`, `src/test/setup.ts` | New "kebab-only at rest" test + 7 existing pluralization/toast-path tests adapted to navigate kebab → menuitem → confirm. 8/8 pass. |
+| F7 | P3 | New `deduplicateByEntityTypeAndLabel` collapses QuickAccess pills sharing `(entityType, lowercased label)`. Applied only in `detectEntities` (name-substring path), NOT in `extractToolResultEntities` (which intentionally repeats labels like "View Project" for distinct tool-result entities). | `src/lib/chat/entity-detector.ts`, `src/lib/chat/__tests__/entity-detector-dedup.test.ts` | 5 new unit tests: same-name collapse, case insensitivity, cross-type preservation, no-op on unique input, regression guard on the existing entityId dedup. |
+| — | release | `chore(release): 0.14.2` — F1/F3/F5/F13 + F8/F11/F12 batch. Version bump only; no `npm publish` performed. | `package.json`, `package-lock.json` | Lockfile updated via `npm version 0.14.2 --no-git-tag-version`. |
 
-`★ Architecture insight ─────────────────────────────────────`
-- F1's fix at the data-layer chokepoint (not the chat tool) means the bug class is closed for ANY future writer (plugins, third-party tools, future MCP servers) — not just the one that surfaced it.
-- F13's root cause was different from what the prior handoff suspected: the silent drop was in `trigger-evaluator.ts:fireAction` (UI-trigger path), not `manifest-trigger-dispatch.ts` (manifest-trigger path). The chat tool's `create_trigger` writes to `user_table_triggers`, which routes through `evaluateTriggers` → `fireAction`, and `fireAction` only knew `config.workflowId` while the chat tool wrote `config.blueprintId`. Both paths now share the same `dispatchBlueprintForRow` helper, so future fixes/observability propagate to both.
-`─────────────────────────────────────────────────`
+`★ Why F7 needed F8 first`
+F8's manifest-name resolution made same-name collisions **more frequent**, not less. Pre-F8, slug-id projects were named after their first composed primitive (e.g. "Portfolio Coach"), which usually didn't collide with the canonical app name a user might already have. Post-F8, the slug-id project uses the manifest name ("Portfolio Manager") — exactly the name a user is most likely to type/reference. So the substring matcher in entity-detector now finds **both** projects and emits both as pills. The handoff's two options ("suppress existing-name match" vs "rename slug-id project") aren't either-or — F8 took rename, F7 added the suppression layer on top. They're a pair.
 
 ---
 
-## Carry-forward findings (need brainstorming, not pure code fixes)
+## Carry-forward findings (need brainstorming/design before code)
 
-These remain open from the prior handoff and need design/UX conversation before code. Severities preserved.
+These remain open and need design conversation before implementation. Severities preserved.
 
-- **F2 P1** — Ledger kit too eagerly inferred for Portfolio Manager (`cost_basis` column ≠ ledger semantics). Needs design conversation about kit-inference rules: ratio-of-money-cols, require date-col for ledger, etc. Surface: `src/lib/apps/view-kits/inference.ts`. (Note: portfolio-manager has been switched to workflow-hub manually in its manifest, so the symptom is masked for THIS app — but the inference rule still mis-fires for new apps.)
-- **F4 P2** — workflow-hub auto-inferred for Marketing Tracker hides the data table. Same root as F2 but for tracker/workflow-hub disambiguation. "Data density" tie-breaker (`userTableRows.count > 5` → prefer table-rendering kit) was suggested.
-- **F6 P3** — Schedules bind to profiles, not blueprints. User mental model: "schedule fires the work" (blueprint). System model: "schedule fires the worker" (profile). Needs UX/spec decision.
-- **F7 P3** — Duplicate Portfolio-related project links shown in materialization card. Either suppress existing-name match or rename slug-id project.
-- **F8 P3** — Slug-based project named after profile not app. Quick win: `compose-integration.ts:ensureAppProject` should prefer the app manifest's `name` over the profile-derived label.
-- **F9 P3** — KPI source kinds don't support computed expressions (ratios, percentages). Needs new source kind in the KPI evaluator (`tableExpression` or `divide` composition).
-- **F10 P3** — Agent inserted 13 rows from 12-row CSV (1 dup). Idempotency on `(table_id, normalized_data_hash)` would prevent.
-- **F11 P3** — Long app name truncation in `/apps/<id>` H1. Tailwind `truncate` likely; allow 2 lines or wider container.
-- **F12 P3** — Bright red "Delete app" at top-right of every app detail. Move to kebab menu or require confirm step.
+- **F2 P1** — Ledger kit too eagerly inferred for any table with a money column (e.g. `cost_basis` ≠ ledger semantics). Surface: `src/lib/apps/view-kits/inference.ts`. Open heuristic options: ratio-of-money-cols, require date-col for ledger, etc. Symptom is masked for portfolio-manager (manually switched to workflow-hub in its manifest), but the inference rule still misfires for new apps.
+- **F4 P2** — workflow-hub auto-inferred for Marketing Tracker hides the data table. Same root cause as F2 but for tracker/workflow-hub disambiguation. Suggested heuristic: `userTableRows.count > 5` favors table-rendering kit. F2 + F4 share root and should be brainstormed together.
+- **F6 P3** — Schedules bind to profiles, not blueprints. User mental model: "schedule fires the work" (blueprint). System model: "schedule fires the worker" (profile). Needs UX/spec decision before code.
+- **F9 P3** — KPI source kinds don't support computed expressions (ratios, percentages). Needs a new source kind in the KPI evaluator (`tableExpression` or `divide` composition). Medium effort once shape is decided.
+- **F10 P3** — Agent inserted 13 rows from 12-row CSV (1 dup). Idempotency on `(table_id, normalized_data_hash)` would prevent. Needs design for the hash contract (which fields contribute, how to handle nulls, how aggressively to dedupe).
 
 ---
 
 ## State left behind
 
-### Apps on disk (8 total)
-| Slug | view.kit | Notes |
-|---|---|---|
-| portfolio-manager | workflow-hub | F1 backfill applied (8 rows now canonical-keyed); F3 KPIs render; ledger-kit no longer relevant for this slug. |
-| marketing-campaign-tracker | tracker | All 13 rows render. F13 trigger now fires correctly — created one verification workflow this session, see DB state below. |
-| demo-* (6 apps) | unset | untouched. |
-
-### DB state
-- `~/.ainative/ainative.db.bak-2026-05-08-pre-row-key-backfill` — DB snapshot taken before F1 backfill (8 rows rewritten). Safe to delete after sanity check.
-- One leftover dup row in Marketing's Posts table (rows #9 and #13, both "What I learned shipping daily" / LinkedIn). Use the F10 cleanup snippet from the prior handoff if you want a clean slate.
-- One verification artifact left behind: workflow `881d043b-340d-4201-9902-ad93d96c9dcc` in `marketing-campaign-tracker` project (status=active) and its associated task (`Content Pipeline Review:`). Created during F13 live verification. Harmless; let it run or `DELETE FROM workflows WHERE id='881d043b-...'`.
+### Branch / remote
+- On `main`, clean working tree, ahead by 0 commits (all 6 pushed).
+- Latest commit: `fdf41bec fix(chat): ship F7 — collapse duplicate same-name project pills in QuickAccess (P3)`
+- Tag: `ainative-business@0.14.2` in `package.json` but **not published to npm**. The handoff that started this session noted F1 alone justified a patch release; with F8/F11/F12/F7 added, the case is stronger but `npm publish` still requires explicit user go-ahead.
 
 ### Dev server
-- Restarted as PID 28796 (`npm run dev` from `/Users/manavsehgal/Developer/ainative`). Prior handoff's PID 13499 is gone.
+- Prior handoff started PID 28796 — **status not verified this session** (no UI work). If you're picking up from here and need a running dev server, kill any stale processes first per the recurring-issues note in `MEMORY.md` (`pkill -f "next dev --turbopack$"` + `pkill -f "next-server"` + check `lsof ~/.ainative/ainative.db`).
+
+### DB
+- `~/.ainative/ainative.db.bak-2026-05-08-pre-row-key-backfill` — DB snapshot from the F1 backfill in the prior session. **Safe to delete after sanity check.** No new backups taken this session.
+- One verification artifact from F13 still present: workflow `881d043b-340d-4201-9902-ad93d96c9dcc` in `marketing-campaign-tracker` project (status=active) and its associated task. Harmless; let it run or `DELETE FROM workflows WHERE id='881d043b-...'`.
+
+### Apps on disk (8 total — unchanged from prior handoff)
+| Slug | view.kit | Notes |
+|---|---|---|
+| portfolio-manager | workflow-hub | F1 backfill (8 rows canonical-keyed) + F3 KPIs render. F8 fix means a re-compose would now create the project named "Portfolio Manager" (was "Portfolio Coach"). |
+| marketing-campaign-tracker | tracker | F13 trigger fires correctly. |
+| demo-* (6 apps) | unset | untouched. |
 
 ### Test count
-665 passing across `data/`, `chat/tools/`, `tables/`, `apps/`, `workflows/`. The 1 file-level failure (`src/lib/workflows/blueprints/__tests__/phase-5-blueprints-validity.test.ts`) is **pre-existing** — confirmed via `git stash` + re-run on unmodified main. Fix is to author the missing builtin blueprints under `~/.ainative/blueprints/` (out of scope here; was already failing before this session).
+- 2147 passing across the full suite (was 2145 in the prior handoff baseline + 2 new tests this session).
+- 8 pre-existing failures unchanged: `phase-5-blueprints-validity` (4 in `router.test.ts`, 1 each in `api-version-window` and `settings`). Confirmed via `git stash` against unmodified `main` at start of session.
 
 ---
 
 ## Recommended next moves
 
-1. **F8 (project naming) is the cheapest open win** — single helper edit in `compose-integration.ts:ensureAppProject` to prefer the app manifest's `name` over the profile-derived label. ~5min including test.
-2. **F2/F4 kit-inference rules** need a brainstorming session before code. Bring the heuristic options to user discussion: data density tie-breaker, money-col-ratio rule, required date-col for ledger.
-3. **F9 KPI computed expressions** — design the new source kind shape, then implement in `evaluate-kpi.ts`. Medium effort.
-4. **Consider** whether the 4 fixes shipped here warrant a `0.14.2` release. Recent pattern: dedicated `chore(release): X.Y.Z` commit follows the underlying fix commit. F1 (P0) is user-visible enough to justify a patch release.
-5. **Phase 5 blueprints validity test** is failing on main in this dev environment. Either author the missing builtins under `~/.ainative/blueprints/` or mark the test environment-conditional. Not a regression from this session.
+1. **Decide on `npm publish` for 0.14.2.** Version bump is committed; only the publish step remains. If you publish, follow the existing pattern: `npm publish` → docs(handoff) commit marking it published. F1 (P0) is genuinely user-visible and was the original justification — F7's "two pills with the same name" is also visually confusing for any user with name-collisions.
+2. **Brainstorm F2 + F4 together** — they share root (kit-inference rules in `src/lib/apps/view-kits/inference.ts`). Bring the heuristic options to discussion: data-density tie-breaker, money-col-ratio rule, required date-col for ledger. Coding without that conversation risks shipping the wrong rule and re-thrashing.
+3. **Design F9 source kind** — pick between `tableExpression` (free-form expr like `total_value / total_positions * 100`) and a structured `divide`/`ratio` composition (safer, less footgun). Implement in `src/lib/apps/view-kits/evaluate-kpi.ts`. Medium effort once shape is decided.
+4. **Design F10 idempotency** — the hash contract is the real decision: which columns contribute, case-sensitivity, null/empty-string handling, whether to dedupe within a single `add_rows` call or also across calls within a window.
+5. **Phase 5 blueprints validity test** — pre-existing failure; either author the missing builtins under `~/.ainative/blueprints/` or mark the test environment-conditional. Not a regression from any session this week.
+6. **Consider a "wire F8/F11/F12/F7 to a fresh app-builder smoke run"** — the prior session smoked a 2-app composition (Portfolio Manager + Marketing Campaign Tracker). Re-running it now would verify F8 (correct project name on first compose) and F7 (no duplicate pills) under realistic agent behavior. Not strictly required — unit tests cover the contracts — but the highest-confidence A/B verification we have.
+
+---
+
+## Quick context for whoever picks this up
+
+- `src/test/setup.ts` now stubs `hasPointerCapture` + `releasePointerCapture`. Any new test using a Radix dropdown / select / popover should "just work" without per-file workarounds. The pattern to open one in JSDOM: `fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false }); fireEvent.click(trigger); await screen.findByRole("menuitem", ...)`.
+- The "fix at the chokepoint" pattern (F1, F8) keeps paying interest — closing a bug class at the data-layer means no per-caller patches and no future-writer regressions. Worth defaulting to when reviewing fixes that look like "5 callers all do X wrong."
+- F8 + F7 are a **pair**: F8 fixes the canonical-naming intent, F7 fixes the substring-matcher's downstream consequence. If a future change reverts either, double-check the other still makes sense in isolation.
