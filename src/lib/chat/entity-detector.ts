@@ -88,7 +88,7 @@ export async function detectEntities(
     }
   }
 
-  return deduplicateByEntityId(items);
+  return deduplicateByEntityTypeAndLabel(deduplicateByEntityId(items));
 }
 
 /**
@@ -214,6 +214,31 @@ export function deduplicateByEntityId(
   return items.filter((item) => {
     if (seen.has(item.entityId)) return false;
     seen.add(item.entityId);
+    return true;
+  });
+}
+
+/**
+ * Remove items that share an (entityType, lowercased label) with an earlier
+ * item — first occurrence wins. Different entity types may share a label
+ * (a project "Foo" + a task "Foo" both render with their own icons), so the
+ * dedup key is type-scoped.
+ *
+ * Fixes F7: a chat response mentioning an app name finds both the slug-id
+ * composed-app project AND a same-named pre-existing project, emitting two
+ * pills with identical labels. F8's manifest-name resolution made these
+ * collisions more frequent because composed-app projects now use the same
+ * canonical name a user is likely to type. We keep the first match (which
+ * iteration order makes deterministic) and suppress later same-label dups.
+ */
+export function deduplicateByEntityTypeAndLabel(
+  items: QuickAccessItem[]
+): QuickAccessItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = `${item.entityType}|${item.label.toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 }
