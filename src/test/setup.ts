@@ -13,6 +13,11 @@ global.ResizeObserver = class ResizeObserver {
 // Mock scrollIntoView for cmdk
 HTMLElement.prototype.scrollIntoView = () => {};
 
+// Mock pointer-capture API for Radix DropdownMenu / Select / etc.
+// JSDOM lacks these, and Radix bails out of opening menus when they're missing.
+HTMLElement.prototype.hasPointerCapture = () => false;
+HTMLElement.prototype.releasePointerCapture = () => {};
+
 if (!process.env.AINATIVE_DATA_DIR) {
   const tempDataDir = mkdtempSync(join(tmpdir(), "ainative-vitest-"));
   mkdirSync(tempDataDir, { recursive: true });

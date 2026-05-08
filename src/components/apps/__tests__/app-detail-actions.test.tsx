@@ -41,25 +41,43 @@ const baseProps = {
   fileCount: 1,
 };
 
-describe("AppDetailActions — pluralization", () => {
-  it("uses singular table copy when tableCount === 1", () => {
+async function openDeleteConfirm() {
+  // Radix DropdownMenu opens on pointerDown, not click. JSDOM doesn't
+  // synthesize pointerDown from click, so we fire it explicitly.
+  const trigger = screen.getByRole("button", { name: /App actions/i });
+  fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
+  fireEvent.click(trigger);
+  const menuItem = await screen.findByRole("menuitem", { name: /Delete app/i });
+  fireEvent.click(menuItem);
+}
+
+describe("AppDetailActions — kebab menu (F12)", () => {
+  it("renders only a kebab trigger at rest, not a destructive button", () => {
     render(<AppDetailActions {...baseProps} />);
-    fireEvent.click(screen.getByRole("button", { name: /Delete app/i }));
+    expect(screen.getByRole("button", { name: /App actions/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Delete app$/i })).toBeNull();
+  });
+});
+
+describe("AppDetailActions — pluralization", () => {
+  it("uses singular table copy when tableCount === 1", async () => {
+    render(<AppDetailActions {...baseProps} />);
+    await openDeleteConfirm();
     expect(
       screen.getByText(/1 table \(and its rows, columns, triggers\)/i)
     ).toBeInTheDocument();
     expect(screen.queryByText(/their rows/i)).toBeNull();
   });
 
-  it("uses plural table copy when tableCount > 1", () => {
+  it("uses plural table copy when tableCount > 1", async () => {
     render(<AppDetailActions {...baseProps} tableCount={3} />);
-    fireEvent.click(screen.getByRole("button", { name: /Delete app/i }));
+    await openDeleteConfirm();
     expect(
       screen.getByText(/3 tables \(and their rows, columns, triggers\)/i)
     ).toBeInTheDocument();
   });
 
-  it("pluralizes schedules and manifest files independently", () => {
+  it("pluralizes schedules and manifest files independently", async () => {
     render(
       <AppDetailActions
         {...baseProps}
@@ -68,12 +86,12 @@ describe("AppDetailActions — pluralization", () => {
         fileCount={2}
       />
     );
-    fireEvent.click(screen.getByRole("button", { name: /Delete app/i }));
+    await openDeleteConfirm();
     expect(screen.getByText(/2 schedules/)).toBeInTheDocument();
     expect(screen.getByText(/2 manifest files/)).toBeInTheDocument();
   });
 
-  it("falls back to 'its manifest' when all counts are zero", () => {
+  it("falls back to 'its manifest' when all counts are zero", async () => {
     render(
       <AppDetailActions
         {...baseProps}
@@ -82,7 +100,7 @@ describe("AppDetailActions — pluralization", () => {
         fileCount={0}
       />
     );
-    fireEvent.click(screen.getByRole("button", { name: /Delete app/i }));
+    await openDeleteConfirm();
     expect(screen.getByText(/and its manifest\./)).toBeInTheDocument();
   });
 });
@@ -97,7 +115,7 @@ describe("AppDetailActions — toast paths", () => {
     );
 
     render(<AppDetailActions {...baseProps} />);
-    fireEvent.click(screen.getByRole("button", { name: /Delete app/i }));
+    await openDeleteConfirm();
     fireEvent.click(
       screen.getByRole("button", { name: /^Delete app$/, hidden: false })
     );
@@ -123,7 +141,7 @@ describe("AppDetailActions — toast paths", () => {
     );
 
     render(<AppDetailActions {...baseProps} />);
-    fireEvent.click(screen.getByRole("button", { name: /Delete app/i }));
+    await openDeleteConfirm();
     fireEvent.click(
       screen.getByRole("button", { name: /^Delete app$/, hidden: false })
     );
@@ -139,7 +157,7 @@ describe("AppDetailActions — toast paths", () => {
     fetchSpy.mockRejectedValue(new Error("Network down"));
 
     render(<AppDetailActions {...baseProps} />);
-    fireEvent.click(screen.getByRole("button", { name: /Delete app/i }));
+    await openDeleteConfirm();
     fireEvent.click(
       screen.getByRole("button", { name: /^Delete app$/, hidden: false })
     );
