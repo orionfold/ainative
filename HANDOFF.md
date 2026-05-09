@@ -1,8 +1,8 @@
-# Handoff: F9 + F10 + Phase-5 shipped — publish 0.14.3 next
+# Handoff: F9 + F10 + Phase-5 shipped — `ainative-business@0.14.3` published
 
-**Created:** 2026-05-08, end of a session that shipped F9 (KPI ratio composition), F10 (row-add idempotency), and Phase-5 (blueprints validity test fix). Prior handoff archived at `.archive/handoff/2026-05-08-design-queue-f9-f10-phase5.md`.
+**Created:** 2026-05-08, end of a session that shipped F9 (KPI ratio composition), F10 (row-add idempotency), and Phase-5 (blueprints validity test fix), then released as `ainative-business@0.14.3` to npm. Prior handoff archived at `.archive/handoff/2026-05-08-design-queue-f9-f10-phase5.md`.
 
-**Status:** clean on `main`. 8 new commits since the prior session's `757f37cd`. `package.json` bumped to `ainative-business@0.14.3` (unpublished). All session work is local — **NOT yet pushed to `origin/main`**.
+**Status:** clean on `main` at `015aa155`, fully pushed to `origin/main`. **`ainative-business@0.14.3` is live on npm** (verified via `npm view`). The full session push spans `757f37cd..015aa155` (10 commits: 8 feature/docs + 1 release + 1 README polish).
 
 ---
 
@@ -67,26 +67,11 @@ Bisectable order maintained: schema-only commits land first (engine non-exhausti
 
 ---
 
-## Next up — push + publish 0.14.3
+## Release record — 0.14.3 published 2026-05-08
 
-`package.json` and `package-lock.json` are both bumped to `0.14.3` (uncommitted as of writing this handoff). The work is ready to push and publish:
+`ainative-business@0.14.3` is live on the npm registry. Published from a separate terminal after `npm pack` verification on this end. The published tarball's shasum differs from the local `npm pack` because `npm publish` re-runs the `prepublishOnly` hook (`npm run build:cli` → tsup), regenerating `dist/cli.js` with a fresh build artifact — version identity is what matters, and 0.14.3 is what's live.
 
-```bash
-# 1. Commit version bump
-git add package.json package-lock.json
-git commit -m "chore: release ainative-business@0.14.3 — F9 + F10 + Phase-5"
-
-# 2. Push everything
-git push origin main
-
-# 3. Publish (privileged — invoke yourself)
-npm publish
-
-# 4. Mark handoff
-# (edit HANDOFF.md to "0.14.3 published" and commit)
-```
-
-The actual `npm publish` is left for explicit user invocation — it modifies a shared production system (the npm registry). Per CLAUDE.md and auto-mode safety: hard-to-reverse production changes still need explicit user confirmation, even when durably authorized in the prior handoff.
+Suggested next-step pipeline (not invoked this session): `/refresh-content-pipeline` to cascade the F9/F10 changes through screengrab → doc-generator → user-guide-sync → book-updater. The README + snapshot were updated surgically this session; book chapters and per-feature reference docs are still on the prior version.
 
 ---
 
