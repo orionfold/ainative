@@ -11,6 +11,7 @@ function makeCtx(over: Partial<KpiContext> = {}): KpiContext {
     tableLatest: vi.fn(async () => "bar"),
     blueprintRunCount: vi.fn(async () => 7),
     scheduleNextFire: vi.fn(async () => 1_700_000_000_000),
+    tableSumWindowed: vi.fn(async () => 0),
     ...over,
   };
 }
@@ -153,5 +154,140 @@ describe("evaluateKpi — tableSumWindowed", () => {
     };
     await evaluateKpi(spec, ctx);
     expect(captured).toBe("positive");
+  });
+});
+
+describe("evaluateKpi — ratio composition", () => {
+  it("computes numerator / denominator for two leaf sources", async () => {
+    const tableSum = vi.fn(async () => 1000);
+    const tableCount = vi.fn(async () => 4);
+    const spec: KpiSpec = {
+      id: "avg",
+      label: "Avg",
+      format: "currency",
+      source: {
+        kind: "ratio",
+        numerator: { kind: "tableSum", table: "t", column: "amount" },
+        denominator: { kind: "tableCount", table: "t" },
+      },
+    };
+    const tile = await evaluateKpi(spec, makeCtx({ tableSum, tableCount }));
+    expect(tableSum).toHaveBeenCalledWith("t", "amount");
+    expect(tableCount).toHaveBeenCalledWith("t", undefined);
+    expect(tile.value).toBe("$250.00");
+  });
+
+  it("renders em-dash when denominator is 0", async () => {
+    const spec: KpiSpec = {
+      id: "x",
+      label: "X",
+      format: "currency",
+      source: {
+        kind: "ratio",
+        numerator: { kind: "tableSum", table: "t", column: "a" },
+        denominator: { kind: "tableCount", table: "t" },
+      },
+    };
+    const tile = await evaluateKpi(
+      spec,
+      makeCtx({
+        tableSum: vi.fn(async () => 100),
+        tableCount: vi.fn(async () => 0),
+      })
+    );
+    expect(tile.value).toBe("—");
+  });
+
+  it("renders em-dash when numerator is null", async () => {
+    const spec: KpiSpec = {
+      id: "x",
+      label: "X",
+      format: "int",
+      source: {
+        kind: "ratio",
+        numerator: { kind: "tableLatest", table: "t", column: "c" },
+        denominator: { kind: "tableCount", table: "t" },
+      },
+    };
+    const tile = await evaluateKpi(
+      spec,
+      makeCtx({
+        tableLatest: vi.fn(async () => null),
+        tableCount: vi.fn(async () => 5),
+      })
+    );
+    expect(tile.value).toBe("—");
+  });
+
+  it("renders em-dash when a child returns a non-numeric string", async () => {
+    const spec: KpiSpec = {
+      id: "x",
+      label: "X",
+      format: "int",
+      source: {
+        kind: "ratio",
+        numerator: { kind: "tableLatest", table: "t", column: "c" },
+        denominator: { kind: "tableCount", table: "t" },
+      },
+    };
+    const tile = await evaluateKpi(
+      spec,
+      makeCtx({
+        tableLatest: vi.fn(async () => "running"),
+        tableCount: vi.fn(async () => 5),
+      })
+    );
+    expect(tile.value).toBe("—");
+  });
+
+  it("formats ratio with format: percent (multiplies by 100)", async () => {
+    const spec: KpiSpec = {
+      id: "win-rate",
+      label: "Win rate",
+      format: "percent",
+      source: {
+        kind: "ratio",
+        numerator: { kind: "tableCount", table: "t", where: "won" },
+        denominator: { kind: "tableCount", table: "t" },
+      },
+    };
+    const calls: Array<[string, string | undefined]> = [];
+    const tableCount = vi.fn(async (tbl: string, where: string | undefined) => {
+      calls.push([tbl, where]);
+      return where === "won" ? 3 : 12;
+    });
+    const tile = await evaluateKpi(spec, makeCtx({ tableCount }));
+    expect(calls).toContainEqual(["t", "won"]);
+    expect(calls).toContainEqual(["t", undefined]);
+    expect(tile.value).toBe("25%");
+  });
+
+  it("evaluates numerator and denominator in parallel", async () => {
+    const order: string[] = [];
+    const tableSum = vi.fn(async () => {
+      order.push("sum-start");
+      await new Promise((r) => setTimeout(r, 5));
+      order.push("sum-end");
+      return 100;
+    });
+    const tableCount = vi.fn(async () => {
+      order.push("count-start");
+      await new Promise((r) => setTimeout(r, 5));
+      order.push("count-end");
+      return 4;
+    });
+    const spec: KpiSpec = {
+      id: "avg",
+      label: "Avg",
+      format: "int",
+      source: {
+        kind: "ratio",
+        numerator: { kind: "tableSum", table: "t", column: "a" },
+        denominator: { kind: "tableCount", table: "t" },
+      },
+    };
+    await evaluateKpi(spec, makeCtx({ tableSum, tableCount }));
+    expect(order.indexOf("sum-start")).toBeLessThan(order.indexOf("count-end"));
+    expect(order.indexOf("count-start")).toBeLessThan(order.indexOf("sum-end"));
   });
 });
