@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AppManifest } from "@/lib/apps/registry";
 import {
   hasBoolean,
+  hasCountLike,
   hasCurrency,
   hasDate,
   hasMessageShape,
@@ -121,6 +122,24 @@ describe("column-shape probes", () => {
     expect(hasStatusLike([{ name: "statesman" }])).toBe(false);
     expect(hasStatusLike([{ name: "phaser" }])).toBe(false);
     expect(hasStatusLike([{ name: "stagehand" }])).toBe(false);
+  });
+
+  it("hasCountLike: matches semantic=count", () => {
+    expect(hasCountLike([{ name: "x", semantic: "count" }])).toBe(true);
+  });
+  it("hasCountLike: matches name patterns", () => {
+    expect(hasCountLike([{ name: "count" }])).toBe(true);
+    expect(hasCountLike([{ name: "total" }])).toBe(true);
+    expect(hasCountLike([{ name: "engagement_count" }])).toBe(true);
+    expect(hasCountLike([{ name: "total_views" }])).toBe(true);
+  });
+  it("hasCountLike: ignores neutral columns", () => {
+    expect(hasCountLike([{ name: "title" }, { name: "amount" }])).toBe(false);
+  });
+  it("hasCountLike: does NOT match substrings inside larger words", () => {
+    expect(hasCountLike([{ name: "discount" }])).toBe(false);
+    expect(hasCountLike([{ name: "subtotal" }])).toBe(false);
+    expect(hasCountLike([{ name: "accountable" }])).toBe(false);
   });
 });
 

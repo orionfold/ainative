@@ -115,6 +115,7 @@ const SOURCE_NAME_RE = /(^|_)(url|link|source|article|reference|feed)(_|$)/i;
 const NOTIFICATION_NAME_RE = /(^|_)(read|unread|seen|notified|notification)(_|$)/i;
 const MESSAGE_NAME_RE = /(^|_)(body|message|subject|summary|content)(_|$)/i;
 const STATUS_NAME_RE = /(^|_)(status|state|stage|phase)(_|$)/i;
+const COUNT_NAME_RE = /(^|_)(count|total)(_|$)/i;
 const COACH_RE = /(^|[-_])coach($|[-_])/i;
 const DOC_BLUEPRINT_RE = /(digest|report|summary|brief|synthesis)/i;
 const INBOX_BLUEPRINT_RE = /(drafter|inbox|notification|message|follow[-_]?up|triage)/i;
@@ -169,6 +170,14 @@ export function hasRating(cols: Col[]): boolean {
 export function hasStatusLike(cols: Col[]): boolean {
   return cols.some(
     (c) => c.semantic === "status" || STATUS_NAME_RE.test(c.name)
+  );
+}
+
+/** A numeric measurement/aggregation column. Used to recognize trackers
+ *  that use counts (engagement_count, total_views) as a progress signal. */
+export function hasCountLike(cols: Col[]): boolean {
+  return cols.some(
+    (c) => c.semantic === "count" || COUNT_NAME_RE.test(c.name)
   );
 }
 
