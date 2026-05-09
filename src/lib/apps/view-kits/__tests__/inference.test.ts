@@ -346,13 +346,18 @@ describe("rule2_tracker — date + (bool|rating|status|count) hero + ≥1 schedu
   });
 });
 
-describe("rule3_research — schedule + digest/report blueprint", () => {
-  it("fires when blueprint id matches digest/report and schedule exists", () => {
+describe("rule3_research — schedule + digest/report blueprint + source shape", () => {
+  it("fires when blueprint matches digest, schedule exists, and hero has source shape", () => {
     const m = makeManifest({
       blueprints: [{ id: "weekly-digest" }],
       schedules: [{ id: "s" }],
+      tables: [{ id: "t-src" }],
     });
-    expect(rule3_research(m)).toBe(true);
+    expect(
+      rule3_research(m, [
+        { tableId: "t-src", columns: [{ name: "url" }] },
+      ])
+    ).toBe(true);
   });
   it("does not fire without schedule", () => {
     const m = makeManifest({ blueprints: [{ id: "weekly-digest" }] });
@@ -362,6 +367,16 @@ describe("rule3_research — schedule + digest/report blueprint", () => {
     const m = makeManifest({
       blueprints: [{ id: "process-rows" }],
       schedules: [{ id: "s" }],
+    });
+    expect(rule3_research(m)).toBe(false);
+  });
+  it("does not fire when schemas are absent (closes legacy fallback)", () => {
+    // Legacy behavior: returned true when callers omitted schemas.
+    // Tightened behavior: requires schemas + source shape unconditionally.
+    const m = makeManifest({
+      blueprints: [{ id: "weekly-digest" }],
+      schedules: [{ id: "s" }],
+      tables: [{ id: "t1" }],
     });
     expect(rule3_research(m)).toBe(false);
   });
@@ -521,8 +536,12 @@ describe("pickKit — first-match-wins decision table", () => {
       profiles: [{ id: "weekly-coach" }],
       blueprints: [{ id: "weekly-digest" }],
       schedules: [{ id: "s" }],
+      tables: [{ id: "t-src" }],
     });
-    expect(pickKit(m, [])).toBe("research");
+    // Source-shape required for research now (legacy fallback removed).
+    expect(
+      pickKit(m, [{ tableId: "t-src", columns: [{ name: "url" }] }])
+    ).toBe("research");
   });
   it("inbox wins over multi-blueprint hub when both could fire", () => {
     const m = makeManifest({

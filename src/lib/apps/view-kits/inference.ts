@@ -74,13 +74,14 @@ export function rule3_research(
   // assumes the hero table holds source links/articles. Personal logs (e.g.
   // "books I've read") share the digest+schedule signature but have no source
   // shape; route them elsewhere instead of dropping into a kit that hides
-  // their table. When schemas aren't supplied (legacy callers) keep the
-  // pre-tightening behavior so existing fixtures still resolve.
-  if (!schemas) return true;
+  // their table. Require schemas + source shape unconditionally; the legacy
+  // `if (!schemas) return true` fallback was a backdoor for callers that
+  // omitted schemas, and production callers always pass them.
+  if (!schemas) return false;
   const heroId = m.tables[0]?.id;
-  if (!heroId) return true;
+  if (!heroId) return false;
   const cols = lookupColumns(schemas, heroId);
-  if (!cols) return true;
+  if (!cols) return false;
   return hasSourceShape(cols);
 }
 
