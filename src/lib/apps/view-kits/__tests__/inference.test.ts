@@ -531,6 +531,27 @@ describe("pickKit — first-match-wins decision table", () => {
       )
     ).toBe("coach");
   });
+  it("ledger still wins over tracker when currency+date+status all present", () => {
+    // Precedence guard: the broadened tracker rule must NOT swallow apps
+    // that satisfy the (now-tightened) ledger rule. rule1_ledger still
+    // runs before rule2_tracker.
+    const m = makeManifest({
+      tables: [{ id: "t1" }],
+      blueprints: [{ id: "bp" }],
+      schedules: [{ id: "s" }],
+    });
+    expect(
+      pickKit(
+        m,
+        cols("t1", [
+          { name: "amount" },
+          { name: "date" },
+          { name: "status" },
+          { name: "engagement_count" },
+        ])
+      )
+    ).toBe("ledger");
+  });
 });
 
 describe("pickKit — workflow-hub fallback (no rule matches)", () => {
@@ -709,6 +730,62 @@ describe("pickKit — starter intent fixtures (acceptance criteria)", () => {
         columns: [
           { name: "title" }, { name: "url" }, { name: "date" },
           { name: "completed" }, { name: "notes" },
+        ],
+      },
+    ];
+    expect(pickKit(m, colMap)).toBe("tracker");
+  });
+
+  it("portfolio-manager-shape (positions snapshot) → workflow-hub", () => {
+    // Regression for F2: positions snapshots had been mis-classified as
+    // ledger because cost_basis / market_value match the currency regex,
+    // but no date column = no transactional time-series = not a ledger.
+    // Falls through to workflow-hub fallback.
+    const m = makeManifest({
+      id: "portfolio-manager",
+      profiles: [{ id: "portfolio-manager--analyst" }],
+      blueprints: [{ id: "portfolio-manager--review" }],
+      tables: [{ id: "t-pos" }],
+      schedules: [{ id: "s", cron: "30 16 * * 1-5" }],
+    });
+    const colMap: ColumnSchemaRef[] = [
+      {
+        tableId: "t-pos",
+        columns: [
+          { name: "ticker" },
+          { name: "name" },
+          { name: "shares" },
+          { name: "cost_basis" },
+          { name: "current_price" },
+          { name: "market_value" },
+        ],
+      },
+    ];
+    expect(pickKit(m, colMap)).toBe("workflow-hub");
+  });
+
+  it("marketing-campaign-tracker-shape → tracker", () => {
+    // Regression for F4: campaign trackers have date + status + count
+    // signals but no boolean/rating, so the old narrower rule2_tracker
+    // missed them and they fell through to workflow-hub, hiding the
+    // user's data table. Broadened tracker rule fixes this.
+    const m = makeManifest({
+      id: "marketing-campaign-tracker",
+      profiles: [{ id: "marketing-campaign-tracker--strategist" }],
+      blueprints: [{ id: "marketing-campaign-tracker--content-pipeline" }],
+      tables: [{ id: "t-camp" }],
+      schedules: [{ id: "s", cron: "0 9 * * 1" }],
+    });
+    const colMap: ColumnSchemaRef[] = [
+      {
+        tableId: "t-camp",
+        columns: [
+          { name: "title" },
+          { name: "channel" },
+          { name: "status" },
+          { name: "publish_date" },
+          { name: "engagement_count" },
+          { name: "notes" },
         ],
       },
     ];
