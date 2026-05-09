@@ -6,6 +6,7 @@ import {
   hasDate,
   hasMessageShape,
   hasNotificationShape,
+  hasStatusLike,
   pickKit,
   rule1_ledger,
   rule2_tracker,
@@ -100,6 +101,26 @@ describe("column-shape probes", () => {
   it("hasMessageShape: does NOT match substrings inside larger words", () => {
     expect(hasMessageShape([{ name: "embodied" }])).toBe(false);
     expect(hasMessageShape([{ name: "anybody" }])).toBe(false);
+  });
+
+  it("hasStatusLike: matches semantic=status", () => {
+    expect(hasStatusLike([{ name: "x", semantic: "status" }])).toBe(true);
+  });
+  it("hasStatusLike: matches name patterns", () => {
+    expect(hasStatusLike([{ name: "status" }])).toBe(true);
+    expect(hasStatusLike([{ name: "state" }])).toBe(true);
+    expect(hasStatusLike([{ name: "stage" }])).toBe(true);
+    expect(hasStatusLike([{ name: "phase" }])).toBe(true);
+    expect(hasStatusLike([{ name: "campaign_status" }])).toBe(true);
+    expect(hasStatusLike([{ name: "pipeline_stage" }])).toBe(true);
+  });
+  it("hasStatusLike: ignores neutral columns", () => {
+    expect(hasStatusLike([{ name: "title" }, { name: "amount" }])).toBe(false);
+  });
+  it("hasStatusLike: does NOT match substrings inside larger words", () => {
+    expect(hasStatusLike([{ name: "statesman" }])).toBe(false);
+    expect(hasStatusLike([{ name: "phaser" }])).toBe(false);
+    expect(hasStatusLike([{ name: "stagehand" }])).toBe(false);
   });
 });
 
