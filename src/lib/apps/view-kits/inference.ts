@@ -38,7 +38,9 @@ export function rule1_ledger(
   if (!heroId) return false;
   if (m.blueprints.length < 1) return false;
   const cols = lookupColumns(schemas, heroId);
-  return cols !== null && hasCurrency(cols);
+  // A ledger is intrinsically transactional. Currency without a date is a
+  // snapshot (e.g. positions) — render via workflow-hub or tracker, not ledger.
+  return cols !== null && hasCurrency(cols) && hasDate(cols);
 }
 
 export function rule2_tracker(

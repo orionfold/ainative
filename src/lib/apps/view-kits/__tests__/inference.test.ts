@@ -225,17 +225,21 @@ describe("decision table — per-rule negative near-misses", () => {
   });
 });
 
-describe("rule1_ledger — currency hero + ≥1 blueprint", () => {
-  it("fires when hero table has a currency column AND ≥1 blueprint", () => {
+describe("rule1_ledger — currency + date hero + ≥1 blueprint", () => {
+  it("fires when hero table has currency + date AND ≥1 blueprint", () => {
     const m = makeManifest({
       tables: [{ id: "t1" }],
       blueprints: [{ id: "bp" }],
     });
-    expect(rule1_ledger(m, cols("t1", [{ name: "amount" }]))).toBe(true);
+    expect(
+      rule1_ledger(m, cols("t1", [{ name: "amount" }, { name: "date" }]))
+    ).toBe(true);
   });
   it("does not fire without a blueprint", () => {
     const m = makeManifest({ tables: [{ id: "t1" }] });
-    expect(rule1_ledger(m, cols("t1", [{ name: "amount" }]))).toBe(false);
+    expect(
+      rule1_ledger(m, cols("t1", [{ name: "amount" }, { name: "date" }]))
+    ).toBe(false);
   });
   it("does not fire without a currency column", () => {
     const m = makeManifest({
@@ -246,6 +250,30 @@ describe("rule1_ledger — currency hero + ≥1 blueprint", () => {
   });
   it("does not fire when no tables exist", () => {
     expect(rule1_ledger(makeManifest({ blueprints: [{ id: "bp" }] }), [])).toBe(false);
+  });
+  it("does not fire when currency present but date missing (snapshot shape)", () => {
+    const m = makeManifest({
+      tables: [{ id: "t1" }],
+      blueprints: [{ id: "bp" }],
+    });
+    expect(
+      rule1_ledger(
+        m,
+        cols("t1", [
+          { name: "ticker" },
+          { name: "cost_basis" },
+          { name: "current_price" },
+          { name: "market_value" },
+        ])
+      )
+    ).toBe(false);
+  });
+  it("does not fire when date present but currency missing", () => {
+    const m = makeManifest({
+      tables: [{ id: "t1" }],
+      blueprints: [{ id: "bp" }],
+    });
+    expect(rule1_ledger(m, cols("t1", [{ name: "date" }]))).toBe(false);
   });
 });
 
@@ -436,6 +464,7 @@ describe("pickKit — first-match-wins decision table", () => {
         m,
         cols("t1", [
           { name: "amount" },
+          { name: "date" },
           { name: "subject" },
           { name: "body" },
           { name: "read" },
