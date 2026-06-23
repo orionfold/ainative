@@ -60,3 +60,19 @@ CLAUDE.local.md
 
 # runtime lock files
 .claude/scheduled_tasks.lock
+
+# Secret sauce — dev-time CC/Codex steering, held back for the paid model.
+# NOT product runtime deps (the SDK reads the end-user's cwd, not this repo).
+# Kept local on disk; only un-tracked from git. KEEP .claude/apps/starters/
+# TRACKED — that is product seed data the homepage renders.
+/CLAUDE.md
+/AGENTS.md
+/MEMORY.md
+/FLOW.md
+.claude/skills/
+.claude/plans/
+.claude/reference/
+.claude/agents/
+.claude/commands/
+.claude/rules/
+.claude/hooks/
