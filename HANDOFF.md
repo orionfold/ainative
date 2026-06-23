@@ -4,7 +4,7 @@
 **operator-gated push** of local commits to the public/private remotes — nothing has left a
 remote yet, by design (push is the operator's call).
 
-**Status:** clean on `main` at `b1c3b3d0`, **4 commits ahead of `origin/main`, none pushed**.
+**Status:** clean on `main` at `6df89f0b`, **6 commits ahead of `origin/main`, none pushed**.
 
 **Full approved plan:** `~/.claude/plans/read-handoff-md-it-soft-token.md`.
 **Playbook + standard:** `_REFER/cc-self-improve-all-projects.md` +
@@ -37,18 +37,30 @@ remote yet, by design (push is the operator's call).
 
 These are the ONLY remaining actions. Each is the operator's call:
 
-1. **ainative `origin/main`** — 4 local commits ahead, none pushed:
-   `553d217e` (S1+S2), `a0b532d5` (S3+S4), `5fa8b3c7` (handoff), `b1c3b3d0` (S5 de-commit).
+1. **ainative `origin/main`** — 6 local commits ahead, none pushed:
+   `553d217e` (S1+S2), `a0b532d5` (S3+S4), `5fa8b3c7` (handoff), `b1c3b3d0` (S5 de-commit),
+   `30f43335` (handoff), `6df89f0b` (`_SPECS` gitignore).
    `git push origin main` when ready. **S5's push is the highest blast radius** — it makes the
    public repo stop carrying the steering files going forward.
-2. **`orionfold/strategy` `origin/main`** — commit `39e0f90` (ainative channel) is local-only.
-   Push that repo when ready.
+2. **`orionfold/strategy` `origin/main`** — commit `39e0f90` (ainative channel) is local-only,
+   PLUS an uncommitted `ainative/_SPECS/backlog.md` (the history-purge backlog item, see below).
+   That repo also has a pre-existing unrelated dirty file (`ainative-business-website/_RELAY.md`)
+   left untouched. Commit + push the strategy repo when ready (operator-gated; not done here per
+   the no-sibling-repo-edits policy).
 
 ## Pre-push sanity (re-run right before pushing, optional but cheap)
 - `git ls-files .claude/` → expect 7 (`.gitignore`, 5 `apps/starters/*.yaml`, `settings.json`).
 - `git ls-files CLAUDE.md AGENTS.md MEMORY.md FLOW.md` → expect EMPTY.
 - `ls .claude/skills | wc -l` → still ~25 on disk (nothing deleted).
 - `npx vitest run src/lib/apps/__tests__/starters.test.ts` → 10/10 green.
+
+## `_SPECS` strategy channel (added this session — `6df89f0b`)
+The history-purge / repo-privatization decision (previously only an "out of scope" note) was queued
+as a written backlog item. It lives in the **private** `orionfold/strategy` repo at
+`ainative/_SPECS/backlog.md`, surfaced in the public repo via a gitignored relative symlink
+`_SPECS -> ../strategy/ainative/_SPECS` (same pattern as `_IDEAS -> ../strategy/ainative/_IDEAS`).
+The public ainative repo tracks ONLY the `.gitignore` stanza — never the symlink or its content.
+Pattern memorized: `memory/strategy-channel-symlink-pattern.md`.
 
 ## Meta-harness safety (VERIFIED SAFE — recorded for confidence)
 The shipped product reads CLAUDE.md / `.claude/skills` relative to the *end user's* cwd / `~/.ainative`,
@@ -58,8 +70,10 @@ tracked, confirmed by the 344 → 7 ls-files result above.
 
 ## Out of scope (record, don't do)
 - Global personal-skill cull. Relocating starters out of `.claude/`. New skills.
-- Repo-privatization / history purge of already-published secret sauce (separate decision; this pass
-  only stopped *future* commits — the steering files already in git history remain in history).
+- Repo-privatization / history purge of already-published secret sauce — this pass only stopped
+  *future* commits; the steering files already in git history remain in history. **Now queued** as a
+  backlog item in the private strategy repo (`_SPECS/backlog.md`, see `_SPECS` section above);
+  awaiting operator decision (history-purge vs privatize vs accept).
 - Note (pre-existing, unrelated to S5): published-npx starters rely on `.claude/apps/starters/`
   existing at the package root, but `.claude/` is in neither npm `files` nor the bin/cli.ts hoist
   list. The loader degrades gracefully (`if (!fs.existsSync(dir)) return []`). Untracking did not
