@@ -37,6 +37,10 @@ output/
 # orionfold/strategy repo (_IDEAS -> ../strategy/ainative/_IDEAS); never ship here
 _IDEAS
 
+# strategy channel symlink — dev-time spec/backlog lives in the private
+# orionfold/strategy repo (_SPECS -> ../strategy/ainative/_SPECS); never ship here
+_SPECS
+
 # Claude Code self-improvement reference docs (local only — playbook + Opus 4.8
 # best-practices standard; see _REFER/cc-self-improve-all-projects.md)
 _REFER/
