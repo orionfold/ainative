@@ -211,12 +211,15 @@ const RUNTIME_CATALOG: Record<AgentRuntimeId, RuntimeCatalogEntry> = {
       supportsPluginMcpServers: true,
     },
     models: {
-      default: "claude-sonnet-4-20250514",
-      supported: ["claude-haiku-4-5-20251001", "claude-sonnet-4-20250514", "claude-opus-4-20250514"],
+      // Bare latest aliases — NOT dated snapshots — so the catalog tracks the
+      // newest model in each family instead of pinning to a stale snapshot that
+      // silently ages out (e.g. claude-opus-4-20250514 was Opus 4, not 4.8).
+      default: "claude-opus-4-8",
+      supported: ["claude-haiku-4-5", "claude-sonnet-4-6", "claude-opus-4-8"],
       tiers: {
-        fast: "claude-haiku-4-5-20251001",
-        balanced: "claude-sonnet-4-20250514",
-        quality: "claude-opus-4-20250514",
+        fast: "claude-haiku-4-5",
+        balanced: "claude-sonnet-4-6",
+        quality: "claude-opus-4-8",
       },
     },
   },
@@ -252,9 +255,12 @@ const RUNTIME_CATALOG: Record<AgentRuntimeId, RuntimeCatalogEntry> = {
       supportsPluginMcpServers: true,
     },
     models: {
-      default: "gpt-4.1",
-      supported: ["gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"],
-      tiers: { fast: "gpt-4.1-nano", balanced: "gpt-4.1-mini", quality: "gpt-4.1" },
+      // Latest GPT-5 family — matches the openai-codex-app-server runtime and the
+      // pricing-registry "gpt-5" prefix. (The prior gpt-4.1 family matched no
+      // pricing prefix, so it billed at $0.)
+      default: "gpt-5.4",
+      supported: ["gpt-5.4", "gpt-5.4-mini", "gpt-5.3-codex"],
+      tiers: { fast: "gpt-5.4-mini", balanced: "gpt-5.3-codex", quality: "gpt-5.4" },
     },
   },
   ollama: {

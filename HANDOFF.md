@@ -1,10 +1,12 @@
-# Handoff: Claude Code self-improvement pass — COMPLETE (S1–S5); pushes operator-gated
+# Handoff: Claude Code self-improvement pass — COMPLETE (S1–S5); ainative pushed, strategy repo + history decision remain
 
-**Updated:** 2026-06-23. **All five sessions (S1–S5) done.** The only thing left is the
-**operator-gated push** of local commits to the public/private remotes — nothing has left a
-remote yet, by design (push is the operator's call).
+**Updated:** 2026-06-23 (revised). **All five sessions (S1–S5) done AND the ainative push landed.**
+The public `origin/main` now carries the S5 de-commit (steering files no longer tracked going
+forward). Remaining: the **sibling `orionfold/strategy` push** (operator's call, no-sibling-edits
+policy) and the **history-purge decision** (steering files already in *past* public history).
 
-**Status:** clean on `main` at `6df89f0b`, **6 commits ahead of `origin/main`, none pushed**.
+**Status:** clean on `main` at `73d142d8`, **fully in sync with `origin/main` (0 ahead, 0 behind)**.
+Verified live: `git ls-files .claude/` → 7, steering files untracked, 25 skills on disk.
 
 **Full approved plan:** `~/.claude/plans/read-handoff-md-it-soft-token.md`.
 **Playbook + standard:** `_REFER/cc-self-improve-all-projects.md` +
@@ -33,15 +35,12 @@ remote yet, by design (push is the operator's call).
 
 ---
 
-## Outstanding pushes (operator-gated — NOTHING has left a remote yet)
+## Outstanding pushes (operator-gated)
 
-These are the ONLY remaining actions. Each is the operator's call:
-
-1. **ainative `origin/main`** — 6 local commits ahead, none pushed:
-   `553d217e` (S1+S2), `a0b532d5` (S3+S4), `5fa8b3c7` (handoff), `b1c3b3d0` (S5 de-commit),
-   `30f43335` (handoff), `6df89f0b` (`_SPECS` gitignore).
-   `git push origin main` when ready. **S5's push is the highest blast radius** — it makes the
-   public repo stop carrying the steering files going forward.
+1. **ainative `origin/main`** — ✅ **DONE.** All commits pushed; local `73d142d8` == `origin/main`.
+   The S5 de-commit (`b1c3b3d0`) is live on the public remote — it stopped the public repo from
+   carrying the steering files going forward. (Handoff previously said "6 ahead, none pushed";
+   that was written pre-push and is now superseded.)
 2. **`orionfold/strategy` `origin/main`** — commit `39e0f90` (ainative channel) is local-only,
    PLUS an uncommitted `ainative/_SPECS/backlog.md` (the history-purge backlog item, see below).
    That repo also has a pre-existing unrelated dirty file (`ainative-business-website/_RELAY.md`)

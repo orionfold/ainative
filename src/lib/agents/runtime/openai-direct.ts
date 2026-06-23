@@ -543,7 +543,8 @@ ${profileList}`;
   ].filter(Boolean).join("\n");
 
   const response = await client.responses.create({
-    model: "gpt-4.1",
+    model: getRuntimeCatalogEntry("openai-direct").models.tiers?.balanced
+      ?? getRuntimeCatalogEntry("openai-direct").models.default,
     instructions,
     input: userContent || "Analyze this task",
   });
@@ -582,7 +583,8 @@ async function testOpenAIConnection(): Promise<RuntimeConnectionResult> {
 
     // Simple validation
     await client.responses.create({
-      model: "gpt-4.1-mini",
+      model: getRuntimeCatalogEntry("openai-direct").models.tiers?.fast
+        ?? getRuntimeCatalogEntry("openai-direct").models.default,
       input: "ping",
     });
 

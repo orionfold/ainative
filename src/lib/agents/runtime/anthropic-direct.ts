@@ -606,7 +606,8 @@ ${profileList}`;
   ].filter(Boolean).join("\n");
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: getRuntimeCatalogEntry("anthropic-direct").models.tiers?.balanced
+      ?? getRuntimeCatalogEntry("anthropic-direct").models.default,
     system: systemPrompt,
     messages: [{ role: "user", content: userContent || "Analyze this task" }],
     max_tokens: 2048,
@@ -639,7 +640,8 @@ async function runAnthropicProfileAssist(input: ProfileAssistRequest): Promise<P
   const client = new sdk.default({ apiKey });
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: getRuntimeCatalogEntry("anthropic-direct").models.tiers?.balanced
+      ?? getRuntimeCatalogEntry("anthropic-direct").models.default,
     system: `You are an AI assistant that helps configure agent profiles. Return ONLY a JSON object with the requested fields.`,
     messages: [{ role: "user", content: JSON.stringify(input) }],
     max_tokens: 2048,
@@ -680,7 +682,8 @@ async function testAnthropicConnection(): Promise<RuntimeConnectionResult> {
 
     // Simple validation: create a minimal request
     await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: getRuntimeCatalogEntry("anthropic-direct").models.tiers?.fast
+        ?? getRuntimeCatalogEntry("anthropic-direct").models.default,
       messages: [{ role: "user", content: "ping" }],
       max_tokens: 1,
     });

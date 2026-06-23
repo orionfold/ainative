@@ -26,6 +26,20 @@ import {
   type UsageSnapshot,
 } from "@/lib/usage/ledger";
 
+/**
+ * The model alias to pass to the Claude Agent SDK's `query()`.
+ *
+ * Returns a generic family alias (e.g. "opus") from the catalog rather than a
+ * dated snapshot, so the runtime tracks whatever the SDK considers the latest
+ * model in that family instead of pinning to a string that silently ages out.
+ * Without this, `query()` omits `model` entirely and the SDK falls back to its
+ * own default — which is not necessarily the family the chat picker selected.
+ */
+function claudeCodeModelAlias(): string {
+  const models = getRuntimeCatalogEntry("claude-code").models;
+  return models.tiers?.quality ?? models.default;
+}
+
 function buildTaskAssistSystemPrompt(profileIds: string[]): string {
   const profileList = profileIds.length > 0
     ? `Available agent profiles: ${profileIds.join(", ")}\nUse "auto" if unsure which profile fits a step.`
@@ -134,6 +148,7 @@ export async function runSingleProfileTest(
       prompt,
       options: {
         abortController,
+        model: claudeCodeModelAlias(),
         includePartialMessages: true,
         env: buildClaudeSdkEnv(authEnv),
         allowedTools: [],
@@ -291,6 +306,7 @@ export async function runMetaCompletion(input: {
       prompt: input.prompt,
       options: {
         abortController,
+        model: claudeCodeModelAlias(),
         includePartialMessages: true,
         cwd: getLaunchCwd(),
         env: buildClaudeSdkEnv(authEnv),
@@ -481,6 +497,7 @@ async function runClaudeProfileAssist(
       prompt,
       options: {
         abortController,
+        model: claudeCodeModelAlias(),
         includePartialMessages: true,
         cwd: getLaunchCwd(),
         env: buildClaudeSdkEnv(authEnv),
@@ -567,6 +584,7 @@ async function runClaudeTaskAssist(
       prompt,
       options: {
         abortController,
+        model: claudeCodeModelAlias(),
         includePartialMessages: true,
         cwd: getLaunchCwd(),
         env: buildClaudeSdkEnv(authEnv),
@@ -637,6 +655,7 @@ async function testClaudeConnection(): Promise<RuntimeConnectionResult> {
       prompt: "Reply with exactly: OK",
       options: {
         abortController,
+        model: claudeCodeModelAlias(),
         maxTurns: 1,
         includePartialMessages: false,
         cwd: getLaunchCwd(),
