@@ -1,6 +1,9 @@
 # Handoff: Content extraction → ~/orionfold/books (Book + User-Guide/docs done, local); pushes pending
 
-**Updated:** 2026-06-28.
+**Updated:** 2026-06-28 (session 2: roadmap reconciliation done).
+
+> **Operator policy (this session):** all commits stay **local-only** through the next release
+> while pivotal changes land. Do NOT push or prompt to push. Memory: `feedback-no-push-reminders-pre-release`.
 
 ## DONE: User Guide / docs extraction → ~/orionfold/books (content-factory model)
 
@@ -33,28 +36,32 @@ machinery.** Plan: `~/.claude/plans/extract-user-guide-docs-to-books.md`.
 (local, no remote by decision). On-disk generated `docs/` corpus + past public history left as-is
 (same accept stance as the book).
 
-### ⚠️ QUEUED: features obsoleted by the User Guide removal (roadmap status now stale)
+### ✅ RESOLVED (session 2, 2026-06-28): roadmap reconciliation for User-Guide-removed features
 
-Removing the in-app User Guide does NOT break anything at runtime (build clean, dev boots, no
-orphaned imports or DB writes — the `settings`/usage tables stay; only their playbook reads are
-gone). But it **obsoletes two roadmap features marked `completed`** whose shipping implementation
-was just deleted:
+The QUEUED stale-roadmap items are now fixed. **Operator decision: mark `removed` + note.** A new
+`removed` status value was introduced (prior vocab was `completed`/`in-progress`/`deferred`; no
+legend block to update — statuses appear inline only). Nothing was broken at runtime — this was
+truth-drift: specs/roadmap claimed `completed` for UI deleted in Phase C.
 
-1. **`playbook-documentation`** (P2, `features/playbook-documentation.md`, roadmap L89) — the in-app
-   User Guide UI itself (route + playbook components). Implementation removed in Phase C.
-2. **`documentation-adoption-tracking`** (P2, `features/documentation-adoption-tracking.md`,
-   roadmap L90) — the DB-backed adoption heatmap (`src/lib/docs/adoption.ts`, queried 7 tables).
-   Its only consumer was the playbook UI; removed in Phase C.
+Changes (4 files, all **local, uncommitted** in working tree; `tsc --noEmit` exits 0):
+1. **`features/roadmap.md`** — `playbook-documentation` + `documentation-adoption-tracking` rows:
+   `completed` → `removed`.
+2. **`features/playbook-documentation.md`** — `status: removed` + `removed-note` (points to commit
+   `e6f532e9` + the `~/orionfold/books` content factory; spec kept as historical record).
+3. **`features/documentation-adoption-tracking.md`** — `status: removed` + `removed-note` (adoption
+   heatmap lost its only consumer; underlying `settings`/usage DB tables retained).
+4. **`src/lib/constants/prose-styles.ts`** — removed the now-dead `PROSE_READER_FULL` export (only
+   consumer was the deleted playbook reader; verified orphaned repo-wide). This also resolves the
+   stale "(playbook)" comment flagged in the prior handoff.
 
-Downstream specs that referenced playbook-documentation as a dependency (still valid as history,
-not broken): `living-book-*` (content-merge/reading-paths/markdown-pipeline), `composed-app-kit-
-coach-and-ledger`, `sidebar-ia-route-restructure`.
+Downstream specs that referenced playbook-documentation as a dependency are still valid as history,
+not broken: `living-book-*` (content-merge/reading-paths/markdown-pipeline),
+`composed-app-kit-coach-and-ledger`, `sidebar-ia-route-restructure`.
 
-**Decision needed (operator):** how to reconcile the roadmap — mark these two as
-`superseded`/`removed` with a note pointing to the books-repo content factory + the doc-extraction,
-or leave `completed` as a historical record. `features/` IS tracked (250 files), so a status edit
-would ship — left untouched pending your call. Also cosmetic: a stale "(playbook)" comment in
-`src/lib/constants/prose-styles.ts:5` (harmless).
+**Browser smoke (Claude in Chrome, session 2):** `npm run dev` booted (HTTP 200 on `/`), homepage
+dashboard rendered clean, **zero console errors**, sidebar confirmed to have **no "Learn"/User Guide
+group** (Home/Compose/Observe/Configure only) — live confirmation Phase C left no orphaned client
+imports. Server torn down after.
 
 ---
 

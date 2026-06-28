@@ -86,8 +86,8 @@ Features that enhance the product but aren't essential for first use — homepag
 | [kanban-board-operations](kanban-board-operations.md)               | P2       | completed | task-board, task-definition-ai                                                                           |
 | [board-context-persistence](board-context-persistence.md)           | P2       | completed | task-board, kanban-board-operations                                                                      |
 | [detail-view-redesign](detail-view-redesign.md)                     | P2       | completed | task-board, document-manager, workflow-engine, ui-density-refinement                                     |
-| [playbook-documentation](playbook-documentation.md)                 | P2       | completed | app-shell, command-palette-enhancement                                                                   |
-| [documentation-adoption-tracking](documentation-adoption-tracking.md) | P2     | completed | playbook-documentation, database-schema                                                                  |
+| [playbook-documentation](playbook-documentation.md)                 | P2       | removed   | app-shell, command-palette-enhancement                                                                   |
+| [documentation-adoption-tracking](documentation-adoption-tracking.md) | P2     | removed   | playbook-documentation, database-schema                                                                  |
 | [keyboard-shortcut-system](keyboard-shortcut-system.md)             | P2       | completed | app-shell, command-palette-enhancement                                                                   |
 | [workflow-ux-overhaul](workflow-ux-overhaul.md)                     | P1       | completed | workflow-engine, ai-assist-workflow-creation, agent-document-context, document-output-generation        |
 | [settings-interactive-controls](settings-interactive-controls.md)   | P2       | completed | —                                                                                                        |

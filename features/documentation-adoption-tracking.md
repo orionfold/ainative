@@ -1,9 +1,15 @@
 ---
 title: Documentation Adoption Tracking
-status: completed
+status: removed
 priority: P2
 milestone: post-mvp
 source: retrospective — code exists without spec (2026-03-31)
+removed-note: >-
+  Removed alongside playbook-documentation in Phase C (commit e6f532e9). The
+  DB-backed adoption heatmap (src/lib/docs/adoption.ts) had no consumer once the
+  in-app User Guide was deleted, so it was removed with it. The underlying DB
+  tables (settings, usage) remain; only the playbook reads are gone. Spec
+  retained as a historical record.
 dependencies: [playbook-documentation, database-schema]
 ---
 
