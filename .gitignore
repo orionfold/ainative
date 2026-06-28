@@ -80,3 +80,11 @@ CLAUDE.local.md
 .claude/commands/
 .claude/rules/
 .claude/hooks/
+
+# AI Native Business book — authoring + content extracted to the private
+# ~/orionfold/books repo (2026-06). The book stays out of the open ainative
+# repo and npm packaging; npm `files` never included these. Kept local on
+# disk; only un-tracked from git. See HANDOFF.md. (.claude/skills/book-updater
+# is already covered by the .claude/skills/ rule above.)
+/book/
+/ai-native-notes/

@@ -31,11 +31,11 @@ Structure documentation according to the type requested:
 - **Changelog**: Version header, date, categorized entries with PR/issue references where available
 - **Book Chapter Review**: Quality pass on AI Native book chapters — terminology consistency, API accuracy, case study attribution, code example quality, section presence, grammar/style. Edit in-place; do not rewrite.
 
-## Originality Checks (Book Chapter Review)
+## Originality Checks (Long-Form Review)
 
-During book chapter quality reviews, specifically check for:
+When reviewing long-form content that draws on external sources, specifically check for:
 
-- **Verbatim copying**: Flag any passage >15 words matching source articles in `ai-native-notes/` that lacks quotation marks
-- **Author attribution**: Every case-study callout must name the author (e.g., "Geoffrey Huntley" not "Ralph Wiggum", "Dorsey and Botha" not "Sequoia")
-- **Structural mirroring**: If a chapter follows a source article's exact progression without acknowledgment, flag it and suggest an explicit framing line ("As [Author] traces in [Work]...")
+- **Verbatim copying**: Flag any passage >15 words matching a provided source article that lacks quotation marks
+- **Author attribution**: Every case-study callout must name the author (use the person's name, not just the company or a nickname)
+- **Structural mirroring**: If the draft follows a source article's exact progression without acknowledgment, flag it and suggest an explicit framing line ("As [Author] traces in [Work]...")
 - **Single-source dependency**: If >50% of a section's ideas come from one source, flag it and suggest multi-source synthesis

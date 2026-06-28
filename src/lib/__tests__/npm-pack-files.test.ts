@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync, existsSync } from "fs";
+import { readFileSync } from "fs";
+import { execFileSync } from "child_process";
 import { join, resolve } from "path";
 
 /**
@@ -7,10 +8,12 @@ import { join, resolve } from "path";
  *
  * History: `book/` and `ai-native-notes/` once HAD to ship because the in-app
  * kindle reader + in-app chapter generator read them at runtime. That reader
- * was removed (the book lives at ainative.business; authoring now happens via
- * the `book-updater` skill editing markdown directly). So those dirs are now
- * dev/authoring assets that must NOT bloat the published tarball — while the
- * working-tree copies must remain so authoring keeps working.
+ * was removed (the book lives at ainative.business), and in 2026-06 the book
+ * authoring + content was extracted entirely to the private ~/orionfold/books
+ * repo. So these dirs must NOT bloat the published tarball — and they are no
+ * longer authoring inputs *in this repo* (book-updater now runs from books/).
+ * This test guards the standing product-safety contract: the book never ships
+ * in the npm package, regardless of whether stray working-tree copies linger.
  */
 describe("npm publish contract", () => {
   const PROJECT_ROOT = resolve(__dirname, "..", "..", "..");
@@ -49,15 +52,20 @@ describe("npm publish contract", () => {
     expect(filesSet.has("docs/")).toBe(true);
   });
 
-  it("authoring sources still exist in the working tree (book-updater inputs)", () => {
-    // The reader is gone, but the book-updater skill still authors chapters
-    // from these dirs in a CC/Codex session — they must remain in the repo.
-    expect(existsSync(join(PROJECT_ROOT, "book", "chapters"))).toBe(true);
-    expect(existsSync(join(PROJECT_ROOT, "ai-native-notes"))).toBe(true);
-
-    const bookChapters = readdirSync(join(PROJECT_ROOT, "book", "chapters"));
-    const notes = readdirSync(join(PROJECT_ROOT, "ai-native-notes"));
-    expect(bookChapters.some((f) => f.endsWith(".md"))).toBe(true);
-    expect(notes.some((f) => f.endsWith(".md"))).toBe(true);
+  it("book content is no longer git-tracked in this repo (extracted to ~/orionfold/books)", () => {
+    // The book authoring + content moved to the private books repo in 2026-06.
+    // Whether or not stray working-tree copies linger on a given machine, the
+    // dirs must not be tracked here so they never re-enter the open repo or the
+    // npm tarball. Tracked-file membership is the durable guarantee; on-disk
+    // presence is incidental and intentionally NOT asserted.
+    const tracked = execFileSync(
+      "git",
+      ["ls-files", "book", "ai-native-notes"],
+      { cwd: PROJECT_ROOT, encoding: "utf-8" }
+    ).trim();
+    expect(
+      tracked,
+      `book/ and ai-native-notes/ must be untracked (extracted to ~/orionfold/books). Still tracked:\n${tracked}`
+    ).toBe("");
   });
 });

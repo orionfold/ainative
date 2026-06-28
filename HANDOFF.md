@@ -1,9 +1,56 @@
-# Handoff: Claude Code self-improvement pass — COMPLETE (S1–S5); ainative pushed, strategy repo + history decision remain
+# Handoff: Book extracted to ~/orionfold/books (Phase A+B+C done, local); pushes + first reader PR pending
 
-**Updated:** 2026-06-23 (revised). **All five sessions (S1–S5) done AND the ainative push landed.**
-The public `origin/main` now carries the S5 de-commit (steering files no longer tracked going
-forward). Remaining: the **sibling `orionfold/strategy` push** (operator's call, no-sibling-edits
-policy) and the **history-purge decision** (steering files already in *past* public history).
+**Updated:** 2026-06-28.
+
+## ACTIVE: AI Native Business book extraction → ~/orionfold/books
+
+The book (content + authoring) is being moved OUT of this public/npm repo into the private
+`~/orionfold/books` repo, so book IP stays out of the open repo + packaging. Plan:
+`~/.claude/plans/let-s-plan-extracting-ai-drifting-lemur.md`.
+
+- **Phase A ✅ (committed in books/ `cdbbc9a`, local-only):** `book/chapters` (14), `ai-native-notes`
+  → `books/ainative/{chapters,notes,images}`; `book.yml` → `source.local: true`; `book-updater`
+  skill moved + rewritten (sibling-path channel `$AINATIVE_REPO=~/orionfold/ainative`, stale
+  `src/lib/book/*` refs removed, build gate `make BOOK=ainative all`, publish via PR to reader).
+  Verified: `make all` green, epubcheck 0, manifest 14ch/4parts, round-trip + guard dry-run pass.
+- **Phase B ✅ (this repo, local — NOT pushed):** de-committed `book/` + `ai-native-notes/`
+  (`git rm -r --cached`, files still on disk); `.gitignore` stanza added; `npm-pack-files.test.ts`
+  updated (now asserts untracked, 5/5 green); `document-writer`/`technical-writer` profiles
+  generalized (book-specific authoring guidance + `ai-native-notes/` refs removed). `next.config.mjs`
+  `/book`→ainative.business redirect KEPT. Historical records (`.archive/`, `features/living-book-*`,
+  CHANGELOG) intentionally left as-is.
+- **Phase C ✅ (books/ skill rewrite + dry-run, local):** book sync now OWNED by the books/
+  `book-updater` skill (Phase 7b rewritten). Reframed model: reader repo is canonical on Spark, its
+  skills run on Spark; `~/Developer/ainative-business.github.io` is a Mac read/write-via-PR clone.
+  New flow = books/ writes chapters into the Mac clone's `src/data/book/chapters/` (confirmed dest)
+  + `public/book/images/`, updates `src/lib/book/content.ts` wordcounts, `npm run build`, then
+  branch+commit+`gh pr create` → Spark merges. **No reader-side sync skill** — the redundant
+  `apply-book-update` skill (assumed a Spark local-peer source) is to be **deleted via the same PR**
+  (`git rm -r .claude/skills/apply-book-update`). Dry-run verified: copying books/ chapters into the
+  clone is a **0-file diff** (content byte-identical to deployed); throwaway branch discarded, clone
+  left clean on main. (Reader `npm run build` fails on a PRE-EXISTING unrelated missing dep
+  `asciinema-player` — needs `npm install` in that clone; NOT book-related, NOT fixed here per
+  no-sibling-edits.)
+
+**Pending pushes / next actions (operator-gated):**
+1. **ainative `origin/main`** — Phase B commit `07917182` made, **NOT pushed** (1 ahead).
+2. **books/** — local-only git; commits `cdbbc9a` (Phase A) + the Phase C skill edit **not pushed**;
+   no remote (see plan operator-decision #1).
+3. **Reader PR (Phase C first real run)** — when you next update a chapter (or to land the skill
+   decommission): run the books/ `book-updater` Phase 7b to open the PR to
+   `orionfold/ainative-business.github.io`, including `git rm -r .claude/skills/apply-book-update`.
+   Today it'd be a content no-op + the skill deletion.
+4. **Optional:** delete on-disk `book/` + `ai-native-notes/` copies in ainative once books/ confirmed
+   sole home (further gated step).
+
+---
+
+## DONE (prior): Claude Code self-improvement pass — COMPLETE (S1–S5); both repos pushed; history purge = someday
+
+**All five sessions (S1–S5) done; BOTH pushes landed (ainative + strategy).**
+The public `origin/main` carries the S5 de-commit (steering files no longer tracked going forward).
+The sibling `orionfold/strategy` repo is now pushed too. Only remaining item is the **history-purge
+decision**, now parked as a **someday** action (no active work pending).
 
 **Status:** clean on `main` at `73d142d8`, **fully in sync with `origin/main` (0 ahead, 0 behind)**.
 Verified live: `git ls-files .claude/` → 7, steering files untracked, 25 skills on disk.
@@ -35,17 +82,13 @@ Verified live: `git ls-files .claude/` → 7, steering files untracked, 25 skill
 
 ---
 
-## Outstanding pushes (operator-gated)
+## Outstanding pushes — ✅ ALL DONE
 
 1. **ainative `origin/main`** — ✅ **DONE.** All commits pushed; local `73d142d8` == `origin/main`.
    The S5 de-commit (`b1c3b3d0`) is live on the public remote — it stopped the public repo from
-   carrying the steering files going forward. (Handoff previously said "6 ahead, none pushed";
-   that was written pre-push and is now superseded.)
-2. **`orionfold/strategy` `origin/main`** — commit `39e0f90` (ainative channel) is local-only,
-   PLUS an uncommitted `ainative/_SPECS/backlog.md` (the history-purge backlog item, see below).
-   That repo also has a pre-existing unrelated dirty file (`ainative-business-website/_RELAY.md`)
-   left untouched. Commit + push the strategy repo when ready (operator-gated; not done here per
-   the no-sibling-repo-edits policy).
+   carrying the steering files going forward.
+2. **`orionfold/strategy` `origin/main`** — ✅ **DONE (2026-06-28).** Strategy channel pushed,
+   including the history-purge backlog item (`ainative/_SPECS/backlog.md`).
 
 ## Pre-push sanity (re-run right before pushing, optional but cheap)
 - `git ls-files .claude/` → expect 7 (`.gitignore`, 5 `apps/starters/*.yaml`, `settings.json`).
@@ -67,12 +110,16 @@ NOT this dev repo. npm `files` already excludes `.claude/`. Gitignoring dev-repo
 break the product. The ONE exception — `.claude/apps/starters/*.yaml` (homepage seed data) — was kept
 tracked, confirmed by the 344 → 7 ls-files result above.
 
+## Someday (parked — no active work; operator will revisit if/when it matters)
+- **History purge / repo-privatization of already-published steering files.** S5 only stopped
+  *future* commits; the steering files (CLAUDE.md, skills, plans, etc.) already in *past* public git
+  history remain there. Three options if ever revisited: **history-purge** (rewrite git history),
+  **privatize** the repo, or **accept** the published history as-is. Backlog detail lives in the
+  private strategy repo at `ainative/_SPECS/backlog.md` (now pushed). **Parked as someday — do not
+  act without explicit operator go-ahead.**
+
 ## Out of scope (record, don't do)
 - Global personal-skill cull. Relocating starters out of `.claude/`. New skills.
-- Repo-privatization / history purge of already-published secret sauce — this pass only stopped
-  *future* commits; the steering files already in git history remain in history. **Now queued** as a
-  backlog item in the private strategy repo (`_SPECS/backlog.md`, see `_SPECS` section above);
-  awaiting operator decision (history-purge vs privatize vs accept).
 - Note (pre-existing, unrelated to S5): published-npx starters rely on `.claude/apps/starters/`
   existing at the package root, but `.claude/` is in neither npm `files` nor the bin/cli.ts hoist
   list. The loader degrades gracefully (`if (!fs.existsSync(dir)) return []`). Untracking did not
