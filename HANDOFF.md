@@ -1,6 +1,8 @@
-# Handoff: Orionfold DS — core slice + Arena-shape shell both SHIPPED (committed local-only)
+# Handoff: Orionfold DS — core slice + Arena shell + telemetry cockpit + brand icons SHIPPED (local-only)
 
-**Updated:** 2026-06-28 (Orionfold Relay redesign — shell session, shell now committed).
+**Updated:** 2026-06-28 (Orionfold Relay redesign — telemetry-cockpit + favicon session). Four local
+commits now: `cc0a2a5c` (DS core) · `a0b4b444` (Arena shell) · `7832143f` (rail→cockpit + dashboard
+dedup) · `e74f3a20` (brand icon set + metadata). None pushed.
 
 > **Operator policy:** all commits stay **local-only** through the next release. Do NOT push or
 > prompt to push (`feedback-no-push-reminders-pre-release`). Default to `main`
@@ -55,8 +57,7 @@ one `getBudgetGuardrailSnapshot()` yields BOTH costs + runtime states, + 2 Drizz
 `app-sidebar.tsx`. `nav-drawer.tsx` was built then removed when the model changed (recoverable
 from git history if ever needed).
 
-**Telemetry rail — 6 wired cells (no fabricated data):** HOST (cwd·branch) · RUNTIME
-(label·provider) · TASKS running · REVIEW pending · COST TODAY · COST TO DATE. Hook polls ~12s,
+**Telemetry rail — originally 6 cells; reshaped to 10 in `7832143f` (see below).** Hook polls ~12s,
 pauses on hidden tab. On poll error: keeps last snapshot + flips live-pip to red "stale".
 
 **Deviation from reference CSS:** the Arena mock used `backdrop-filter:blur` on the bar — Calm Ops
@@ -68,29 +69,69 @@ errors, `/api/telemetry` + `/workflows` + `/` 200 · **browser**: accordion rout
 (`/workflows` opens Compose + cyan-active "Workflows"), single-line children render, centered
 canvas, rail live values. Round-trip note appended to DS `aligned/` log.
 
-## Narrow-viewport behavior — operator decision applied (partial)
+## Narrow-viewport / phone mode — DECIDED: not building (2026-06-28)
 
-**Decision (this session):** the operator chose the lightweight fix — **drop the per-child tip
-from the bar** (done, see above). This shrinks each expanded child pill so four-across fits more
-viewports before horizontal-scroll kicks in. The bar's `<nav>` still uses `overflow-x-auto`, so it
-degrades to horizontal scroll on very narrow screens rather than a dedicated phone mode.
+The lightweight fix (drop per-child tip → narrower pills) shipped in `a0b4b444`. **Operator then
+decided NOT to build a true phone mode:** Relay's floor is **desktop/tablet (≥768px)**; below that the
+bar's `overflow-x-auto` scroll is an accepted, intentional degradation, not a defect. Icon-only
+collapse and the `Sheet`-drawer reinstatement are both **declined** (icon-only was judged a
+half-measure — an expanded group's children still scroll; the drawer is the only real fix but the
+viewport isn't a target). The deleted `nav-drawer.tsx` stays recoverable from git if this ever
+reverses, but it is off the roadmap.
 
-**Still open if a true phone mode is wanted later** (NOT chosen this session): icon-only collapse
-`< md`, or reinstating a compact `Sheet` drawer `< md` (the deleted `nav-drawer.tsx`, recoverable
-from git). If built, re-verify with Chrome DevTools `resize_page` (real viewport change — window
-resize does NOT change the MCP screenshot viewport; learned this session) at ~375px and ~680px,
-both themes; touch-target ≥ 32px; `npm run dev` smoke still required (layout-adjacent).
+## DONE (committed `7832143f`, local — NOT pushed): telemetry rail → orchestration cockpit + dashboard dedup
 
-## Deferred / roadmap (NOT this build)
-Favicon/PWA disc+star raster set (+ `npx-process-cwd.test.ts` update) · HOST CPU/RAM telemetry ·
-RUNTIME SDK version · `.of-boot` splash · proof "signature objects" (receipt card / verdict banner)
-on `/monitor` + `/tasks/[id]` · per-route off-system finish polish (e.g. `cost-dashboard` rounded-3xl) ·
-true phone/compact nav mode (see above). Full roadmap:
-`~/orionfold-design-system/apply/ainative/roadmap/2026-06-28-164854-log.md`.
+Reshaped the rail from inert-identity + static counts into a fleet-health cockpit, then made it the
+**single canonical metric surface** by deleting the dashboard's duplicate `StatsCards` strip (operator
+caught the redundancy — rail and cards showed the same numbers from the same queries, stacked).
+
+- **Rail now 10 cells:** HOST (folder · live cpu/mem via `os.loadavg`/`freemem`) · RUNTIME (label ·
+  installed SDK version) · TASKS (running + 24h activity spark) · THROUGHPUT (done today + 7d spark) ·
+  FAILURES (failed, **red** + 7d spark) · REVIEW (pending) · PROJECTS (active) · WORKFLOWS (active) ·
+  COST TODAY · COST TO DATE. Sparklines reuse `Sparkline` + `chart-data` queries.
+- **SDK version** resolved via `createRequire` walk (package `exports` hides `./package.json`); shows
+  *installed* (`0.2.114`) not declared (`^0.2.71`) — drift is the point. Null → no sub-line.
+- **`RailCell` API:** `strong` → `tone: "accent"|"danger"` (FAILURES reads red, not live-cyan); new
+  inline `spark` slot. New `getFailuresByDay()` in `chart-data.ts`.
+- **Dashboard (`page.tsx`):** removed `StatsCards` + dead `stats-cards.tsx`; pruned 5 now-orphaned
+  chart-data queries/vars + unused drizzle imports. Dashboard is now a workspace, not a number recap.
+- **Left in place:** 4 uncalled `chart-data` query *functions* (have tests, harmless exports) — not
+  deleted per minimal-diff. Remove + their tests if cleanliness is wanted later.
+- Verified: tsc · `validate:tokens` · shell/queries/dashboard tests 11/11 · **dev smoke (TDR-032,
+  route is runtime-registry-adjacent)** — `/api/telemetry` 200 real data, no module-load cycle ·
+  browser both themes.
+
+## DONE (committed `e74f3a20`, local — NOT pushed): brand icon set + fixed stale app metadata
+
+Replaced pre-brand raster logos with a full modern icon set + fixed metadata still reading "AI Native
+Business". **Operator chose:** disc-fills-the-frame canvas + full modern set.
+
+- **`scripts/generate-brand-icons.ts`** (sharp) rasterizes the OfMark → `public/`: `favicon.ico`
+  (16/32/48 multi-res) + icon-16/32/48/192/512 + apple-icon-180 + icon-512-maskable. Disc fill =
+  baked `#009b97` (= `--primary` light, oklch(0.62 0.11 192); rasters have no CSS). **Regenerate via
+  the script** when mark or cyan changes. Deleted orphaned `ainative-s-64/128.png`.
+- **`layout.tsx`:** title → "Orionfold Relay", description → "Multi-agent orchestration for AI-native
+  work", explicit npx-safe icons block. **`manifest.ts`:** name/short → Orionfold Relay/Relay,
+  `theme_color` → `#009b97`, `background_color` → `#040a11` (both were pre-rebrand indigo/slate
+  leftovers). Updated `package.json` hoist list + `npx-process-cwd.test.ts` icon names.
+- Verified: tsc · `validate:tokens` · npx test 4/4 · dev smoke (home + manifest + favicon + icons all
+  200, TDR-032) · browser (title + manifest + head links + rendered mark correct).
+
+## Deferred / roadmap (NOT yet built) — 3 left
+`.of-boot` splash (brand boot screen, uses `OfMark`) · proof "signature objects" (receipt card /
+verdict banner) on `/monitor` + `/tasks/[id]` — **the heavy from-scratch design build, no existing
+receipt/verdict primitives** · per-route off-system finish polish (e.g. `cost-dashboard.tsx` ~20
+`rounded-3xl`/`rounded-2xl` + `bg-background/40` → DS radii/opaque). First two roadmap items
+(HOST CPU/RAM, RUNTIME SDK version) + favicon + phone-mode are now resolved (see above). Full
+roadmap: `~/orionfold-design-system/apply/ainative/roadmap/2026-06-28-164854-log.md`.
+
+**Suggested next:** the two light items (`.of-boot` splash + cost-dashboard polish — one short session
+each or bundled), then proof signature objects as its own properly-spec'd feature.
 
 ## State
-- Branch `main`, dev server may be running on `:3000` (operator's). Two new local commits this
-  session: `cc0a2a5c` (DS core) and `a0b4b444` (Arena shell). Neither pushed.
+- Branch `main`, dev server may be running on `:3000` (operator's). Four local redesign commits,
+  none pushed: `cc0a2a5c` (DS core) · `a0b4b444` (Arena shell) · `7832143f` (rail→cockpit + dedup) ·
+  `e74f3a20` (brand icons + metadata).
 - Version NOT bumped per-commit — `0.15.0` accumulates toward the next batched release
   (`project-self-extending-machine-npm-deferred`).
 - The sibling repo `~/orionfold-design-system` has my round-trip logs under `apply/ainative/` —
