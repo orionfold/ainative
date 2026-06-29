@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/shell/app-shell";
+import { OfMark } from "@/components/shared/of-mark";
 import { CommandPalette } from "@/components/shared/command-palette";
 import { PendingApprovalHost } from "@/components/notifications/pending-approval-host";
 import { GlobalShortcuts } from "@/components/shared/global-shortcuts";
@@ -102,6 +103,20 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
       >
+        {/* Brand boot splash — CSS-only fade, painted on first server
+            render and self-dismissing via the .of-boot animation. No JS
+            state. Hidden entirely for prefers-reduced-motion (see
+            globals.css). aria-hidden: decorative, not announced. */}
+        <div className="of-boot" aria-hidden="true">
+          <span className="of-boot__mark">
+            <OfMark size={72} />
+          </span>
+          <span className="text-2xl font-semibold tracking-tight leading-none">
+            <span className="text-foreground">Orion</span>
+            <span className="text-primary">fold</span>
+            <span className="text-foreground"> Relay</span>
+          </span>
+        </div>
         <a href="#main-content" className="skip-nav">
           Skip to main content
         </a>

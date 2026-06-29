@@ -518,6 +518,45 @@
   }
 }
 
+/* =============================================================
+   .of-boot — Orionfold Relay brand boot splash
+   -------------------------------------------------------------
+   Opaque full-screen veil painted on the first server render
+   (markup lives in layout.tsx). Holds briefly, then fades out via
+   CSS only — no JS state, no hydration timing, FOUC-safe by
+   construction. Sits above app content but BELOW modal/toast
+   layers. The `to` step sets visibility:hidden + pointer-events:
+   none so the veil fully leaves the a11y tree and stops
+   intercepting clicks once gone.
+   ============================================================= */
+@keyframes of-boot-out {
+  0%, 55% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+.of-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: var(--background);
+  /* hold ~250ms, fade ~450ms, then locked hidden via `forwards` */
+  animation: of-boot-out 700ms ease-out forwards;
+}
+
+.of-boot__mark {
+  animation: of-boot-mark 700ms ease-out both;
+}
+
+@keyframes of-boot-mark {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .animate-card-exit {
   animation: card-exit 400ms ease-out forwards;
   overflow: hidden;
@@ -576,5 +615,12 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The global reset above zeroes the boot fade-out, which would
+     otherwise freeze the veil at opacity:1 and lock the app behind
+     it. For reduced-motion users we skip the splash entirely. */
+  .of-boot {
+    display: none !important;
   }
 }
