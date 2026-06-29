@@ -1,9 +1,8 @@
 import { db } from "@/lib/db";
 import { tasks, projects, agentLogs, notifications, workflows } from "@/lib/db/schema";
-import { eq, count, gte, and, desc, sql, inArray } from "drizzle-orm";
+import { eq, count, and, desc, inArray } from "drizzle-orm";
 import { parseWorkflowState } from "@/lib/workflows/engine";
 import { Greeting } from "@/components/dashboard/greeting";
-import { StatsCards } from "@/components/dashboard/stats-cards";
 import { PriorityQueue } from "@/components/dashboard/priority-queue";
 import type { PriorityTask } from "@/components/dashboard/priority-queue";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
@@ -14,47 +13,27 @@ import type { RecentProject } from "@/components/dashboard/recent-projects";
 import { WelcomeLanding } from "@/components/dashboard/welcome-landing";
 import { ActivationChecklist } from "@/components/onboarding/activation-checklist";
 import { listStarters } from "@/lib/apps/starters";
-import {
-  getCompletionsByDay,
-  getTaskCreationsByDay,
-  getActiveProjectActivityByDay,
-  getAgentActivityByHour,
-  getNotificationsByDay,
-  getWorkflowActivityByDay,
-} from "@/lib/queries/chart-data";
+import { getAgentActivityByHour } from "@/lib/queries/chart-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   // Run all DB queries in parallel
   const [
     [runningResult],
     [failedResult],
-    [completedTodayResult],
     [completedAllTimeResult],
     [awaitingResult],
-    [activeProjectsResult],
     priorityTasks,
     activeWorkflows,
     [activeWorkflowCountResult],
     recentLogs,
     allProjects,
     recentActiveProjects,
-    completionsByDay,
-    taskCreationsByDay,
-    projectCreationsByDay,
     agentActivityByHour,
-    notificationsByDay,
-    workflowsByDay,
   ] = await Promise.all([
     db.select({ count: count() }).from(tasks).where(eq(tasks.status, "running")),
     db.select({ count: count() }).from(tasks).where(eq(tasks.status, "failed")),
-    db.select({ count: count() }).from(tasks).where(
-      and(eq(tasks.status, "completed"), gte(tasks.updatedAt, today))
-    ),
     db.select({ count: count() }).from(tasks).where(eq(tasks.status, "completed")),
     db.select({ count: count() }).from(notifications).where(
       and(
@@ -66,7 +45,6 @@ export default async function HomePage() {
         ])
       )
     ),
-    db.select({ count: count() }).from(projects).where(eq(projects.status, "active")),
     // Priority queue: failed + running tasks, sorted by priority
     db.select().from(tasks).where(
       inArray(tasks.status, ["failed", "running", "queued"])
@@ -87,13 +65,8 @@ export default async function HomePage() {
       .where(eq(projects.status, "active"))
       .orderBy(desc(projects.updatedAt))
       .limit(3),
-    // Chart data queries
-    getCompletionsByDay(7),
-    getTaskCreationsByDay(7),
-    getActiveProjectActivityByDay(7),
+    // 24h agent activity for the dashboard ActivityFeed.
     getAgentActivityByHour(),
-    getNotificationsByDay(7),
-    getWorkflowActivityByDay(7),
   ]);
 
   // Fresh instance detection: show welcome landing if no tasks or workflows exist
@@ -210,21 +183,6 @@ export default async function HomePage() {
           awaitingCount={awaitingResult.count}
           failedCount={failedResult.count}
           activeWorkflows={activeWorkflowCountResult.count}
-        />
-        <StatsCards
-          runningCount={runningResult.count}
-          completedToday={completedTodayResult.count}
-          completedAllTime={completedAllTimeResult.count}
-          awaitingReview={awaitingResult.count}
-          activeProjects={activeProjectsResult.count}
-          activeWorkflows={activeWorkflowCountResult.count}
-          sparklines={{
-            completions: completionsByDay,
-            creations: taskCreationsByDay,
-            projects: projectCreationsByDay,
-            notifications: notificationsByDay,
-            workflows: workflowsByDay,
-          }}
         />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 mb-6">
           <div className="lg:col-span-3">

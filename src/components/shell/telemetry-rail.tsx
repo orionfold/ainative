@@ -4,7 +4,11 @@ import {
   Server,
   Cpu,
   ListChecks,
+  CheckCircle2,
+  XCircle,
   ShieldQuestion,
+  FolderKanban,
+  Workflow,
   Coins,
   Wallet,
   CircleAlert,
@@ -13,10 +17,28 @@ import { RailCell, formatMicros } from "./rail-cell";
 import { useTelemetry } from "./use-telemetry";
 
 // The standing instrument cluster: a single dense horizontal row beneath the app
-// bar (mirrors `.hp-rail`). Six real cells — HOST · RUNTIME · TASKS · REVIEW ·
-// COST TODAY · COST TO DATE — plus a live/error status foot at the far right.
-// No fabricated data: while loading, cells show "—"; on a poll error the last
-// good snapshot stays visible and the foot flips to an explicit error pip.
+// bar (mirrors `.hp-rail`). A cockpit for a multi-agent harness — eight real
+// cells: HOST (folder · cpu/mem) · RUNTIME (label · sdk version) · TASKS
+// (running + 24h activity spark) · THROUGHPUT (completed today + 7d spark) ·
+// FAILURES (failed + 7d spark, red) · REVIEW (pending) · COST TODAY · COST TO
+// DATE — plus a live/error status foot. No fabricated data: while loading, cells
+// show "—"; on a poll error the last good snapshot stays visible and the foot
+// flips to an explicit error pip. Static identity (cwd/runtime) is compressed
+// into sub-lines so the live throughput signal owns the foreground.
+
+// Compose the HOST sub-line from whatever live metrics the platform reports;
+// falls back to git branch so the cell is never empty.
+function hostSub(
+  cpuLoadPct: number | null | undefined,
+  memUsedPct: number | null | undefined,
+  branch: string | null | undefined,
+): string {
+  const parts: string[] = [];
+  if (cpuLoadPct != null) parts.push(`cpu ${cpuLoadPct}%`);
+  if (memUsedPct != null) parts.push(`mem ${memUsedPct}%`);
+  if (parts.length > 0) return parts.join(" · ");
+  return branch ? `git:${branch}` : "no git";
+}
 
 export function TelemetryRail() {
   const telemetry = useTelemetry();
@@ -36,30 +58,70 @@ export function TelemetryRail() {
         icon={<Server aria-hidden />}
         loading={loading}
         value={data?.host.folderName ?? "—"}
-        sub={branch ? `git:${branch}` : "no git"}
+        sub={hostSub(data?.host.cpuLoadPct, data?.host.memUsedPct, branch)}
       />
       <RailCell
         label="Runtime"
         icon={<Cpu aria-hidden />}
         loading={loading}
         value={data?.runtimeLabel ?? "—"}
-        sub={data?.providerId ?? "not configured"}
+        sub={
+          data?.runtimeSdkVersion
+            ? `sdk ${data.runtimeSdkVersion}`
+            : data?.providerId ?? "not configured"
+        }
       />
       <RailCell
         label="Tasks"
         icon={<ListChecks aria-hidden />}
         loading={loading}
-        strong={(data?.tasksRunning ?? 0) > 0}
+        tone={(data?.tasksRunning ?? 0) > 0 ? "accent" : undefined}
         value={data?.tasksRunning ?? 0}
         sub="running"
+        spark={data?.trends.agentActivity24h}
+        sparkLabel="Agent activity, last 24h"
+      />
+      <RailCell
+        label="Throughput"
+        icon={<CheckCircle2 aria-hidden />}
+        loading={loading}
+        value={data?.completedToday ?? 0}
+        sub="done today"
+        spark={data?.trends.completions7d}
+        sparkLabel="Completions, last 7 days"
+      />
+      <RailCell
+        label="Failures"
+        icon={<XCircle aria-hidden />}
+        loading={loading}
+        tone={(data?.tasksFailed ?? 0) > 0 ? "danger" : undefined}
+        value={data?.tasksFailed ?? 0}
+        sub="failed"
+        spark={data?.trends.failures7d}
+        sparkColor="var(--status-failed)"
+        sparkLabel="Failures, last 7 days"
       />
       <RailCell
         label="Review"
         icon={<ShieldQuestion aria-hidden />}
         loading={loading}
-        strong={(data?.reviewPending ?? 0) > 0}
+        tone={(data?.reviewPending ?? 0) > 0 ? "accent" : undefined}
         value={data?.reviewPending ?? 0}
         sub="pending"
+      />
+      <RailCell
+        label="Projects"
+        icon={<FolderKanban aria-hidden />}
+        loading={loading}
+        value={data?.activeProjects ?? 0}
+        sub="active"
+      />
+      <RailCell
+        label="Workflows"
+        icon={<Workflow aria-hidden />}
+        loading={loading}
+        value={data?.activeWorkflows ?? 0}
+        sub="active"
       />
       <RailCell
         label="Cost Today"

@@ -51,6 +51,26 @@ export async function getCompletionsByDay(days = 7): Promise<number[]> {
 }
 
 /**
+ * 7-day task failure counts (one number per day). Mirrors getCompletionsByDay
+ * but on the `failed` status — the failure-trend signal for the cockpit rail.
+ */
+export async function getFailuresByDay(days = 7): Promise<number[]> {
+  const dates = lastNDays(days);
+  const since = daysAgoTimestamp(days);
+
+  const rows = await db
+    .select({
+      date: sql<string>`strftime('%Y-%m-%d', ${tasks.updatedAt} , 'unixepoch')`,
+      count: sql<number>`count(*)`,
+    })
+    .from(tasks)
+    .where(and(eq(tasks.status, "failed"), gte(tasks.updatedAt, since)))
+    .groupBy(sql`strftime('%Y-%m-%d', ${tasks.updatedAt} , 'unixepoch')`);
+
+  return gapFill(dates, rows);
+}
+
+/**
  * 7-day task creation counts.
  */
 export async function getTaskCreationsByDay(days = 7): Promise<number[]> {

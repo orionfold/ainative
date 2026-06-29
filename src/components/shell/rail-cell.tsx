@@ -1,25 +1,40 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Sparkline } from "@/components/charts/sparkline";
 
 // One telemetry cell: a mono-uppercase key over a tabular value, with an
-// optional sub-line. Mirrors `.hp-cell` from arena-shell.reference.css —
-// fixed min-width, right hairline divider, top-aligned. `strong` paints the
-// value cyan (used sparingly, for the single most "live" figure in a cell).
+// optional sub-line and an optional trend sparkline beside the value. Mirrors
+// `.hp-cell` from arena-shell.reference.css — fixed min-width, right hairline
+// divider, top-aligned. `tone` paints the value: "accent" = cyan (the single
+// most "live" figure in a cell), "danger" = red (a non-zero alarm count); both
+// used sparingly. When `spark` is provided, a compact sparkline renders inline
+// to the right of the value so the cell height stays within the rail's fixed
+// band.
 
 export function RailCell({
   label,
   icon,
   value,
   sub,
-  strong,
+  tone,
   loading,
+  spark,
+  sparkColor = "var(--chart-1)",
+  sparkLabel,
 }: {
   label: string;
   icon?: ReactNode;
   value: ReactNode;
   sub?: ReactNode;
-  strong?: boolean;
+  /** Value emphasis: "accent" = cyan (live), "danger" = red (alarm). */
+  tone?: "accent" | "danger";
   loading?: boolean;
+  /** Trend series; renders a compact sparkline inline beside the value. */
+  spark?: number[];
+  /** Stroke/fill color for the sparkline (semantic per cell). */
+  sparkColor?: string;
+  /** Accessible label for the sparkline. */
+  sparkLabel?: string;
 }) {
   return (
     <div className="flex min-w-[8.5rem] flex-none flex-col gap-0.5 border-r border-border px-4 pt-2.5">
@@ -31,14 +46,28 @@ export function RailCell({
         )}
         {label}
       </div>
-      <div
-        className={cn(
-          "flex items-baseline gap-1.5 font-mono text-sm tabular-nums",
-          strong ? "text-primary" : "text-foreground",
-          loading && "text-muted-foreground/50",
+      <div className="flex items-baseline gap-2">
+        <div
+          className={cn(
+            "flex items-baseline gap-1.5 font-mono text-sm tabular-nums",
+            tone === "accent" && "text-primary",
+            tone === "danger" && "text-[var(--status-failed)]",
+            !tone && "text-foreground",
+            loading && "text-muted-foreground/50",
+          )}
+        >
+          {loading ? "—" : value}
+        </div>
+        {!loading && spark && spark.length > 0 && (
+          <Sparkline
+            data={spark}
+            width={48}
+            height={16}
+            color={sparkColor}
+            label={sparkLabel ?? `${label} trend`}
+            className="self-center opacity-90"
+          />
         )}
-      >
-        {loading ? "—" : value}
       </div>
       {sub != null && (
         <div className="truncate font-mono text-[0.65rem] text-muted-foreground/60">
