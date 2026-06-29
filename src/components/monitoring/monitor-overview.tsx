@@ -94,7 +94,7 @@ export async function MonitorOverview() {
               value={successRate}
               size={36}
               strokeWidth={4}
-              color="var(--chart-2)"
+              color="var(--chart-1)"
               label={`Success rate: ${successRate}%`}
             />
             <div className="text-2xl font-bold">{successRate}%</div>

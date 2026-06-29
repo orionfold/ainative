@@ -88,11 +88,20 @@ function checkFontReferences(srcDir: string): ValidationResult {
 
   const files = getAllFiles(srcDir, [".tsx", ".ts"]);
 
+  // Orionfold DS alignment (2026-06-28): the canonical superfamily is Geist +
+  // Geist Mono. This check was previously the inverse (it BANNED Geist while the
+  // app ran Inter + JetBrains Mono). Adopting the brand fonts flips the contract:
+  // Geist is now required, and any leftover Inter / JetBrains Mono reference is the
+  // drift we reject. See aligned/2026-06-28-164854-log.md (fonts = Option B).
   for (const file of files) {
     const content = readFileSync(file, "utf-8");
-    if (content.includes("Geist") || content.includes("geist-sans") || content.includes("geist-mono")) {
-      const relativePath = file.replace(process.cwd() + "/", "");
-      errors.push(`${relativePath} — contains reference to removed Geist font`);
+    const relativePath = file.replace(process.cwd() + "/", "");
+    // Match the next/font font tokens specifically, not the English word "Inter"
+    // (which collides with "Inter-profile", "Interval", …). The unambiguous forms:
+    // the next/font call `Inter(` / import `{ Inter }`, the `JetBrains_Mono`
+    // identifier, and the CSS vars `--font-inter` / `--font-jetbrains-mono`.
+    if (/\bInter\s*\(|\bInter\s*[,}]|\bJetBrains_Mono\b|--font-inter|--font-jetbrains-mono/.test(content)) {
+      errors.push(`${relativePath} — contains reference to retired Inter/JetBrains Mono font (use Geist / Geist Mono)`);
     }
   }
 
@@ -126,7 +135,7 @@ if (allErrors.length > 0) {
 } else {
   console.log(`${GREEN}✓ All design token validations passed${RESET}`);
   console.log(`  ${GREEN}• Zero forbidden patterns in ${getAllFiles(srcDir, [".tsx", ".ts", ".css"]).length} files${RESET}`);
-  console.log(`  ${GREEN}• Zero Geist font references${RESET}`);
+  console.log(`  ${GREEN}• Zero retired Inter/JetBrains Mono references (Geist superfamily)${RESET}`);
   console.log(`  ${GREEN}• tokens.json schema valid${RESET}`);
   process.exit(0);
 }

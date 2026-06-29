@@ -479,7 +479,7 @@ export function CostDashboard({
                         data={trendSeries.tokens7}
                         width={160}
                         height={48}
-                        color="var(--chart-2)"
+                        color="var(--chart-1)"
                         label="7 day token trend"
                         className="w-full"
                       />
@@ -491,7 +491,7 @@ export function CostDashboard({
                       <MiniBar
                         data={trendSeries.tokens30.map((value) => ({
                           value,
-                          color: "var(--chart-2)",
+                          color: "var(--chart-1)",
                         }))}
                         width={220}
                         height={48}

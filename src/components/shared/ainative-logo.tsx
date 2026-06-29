@@ -1,21 +1,20 @@
-import Image from "next/image";
+import { OfMark } from "@/components/shared/of-mark";
 
 interface AinativeLogoProps {
   size?: number;
   className?: string;
+  /** Kept for API compatibility; the delta mark is identical across variants. */
   variant?: "icon" | "symbol";
 }
 
-export function AinativeLogo({ size = 24, className, variant = "icon" }: AinativeLogoProps) {
+/**
+ * The Orionfold delta mark at small sizes (icon-rail / collapsed contexts).
+ * Theme-aware SVG — see {@link OfMark}. Replaces the pre-brand raster logo.
+ */
+export function AinativeLogo({ size = 24, className }: AinativeLogoProps) {
   return (
     <span className={`inline-flex items-center justify-center shrink-0 ${className ?? ""}`}>
-      <Image
-        src="/ainative-s-64.png"
-        alt=""
-        width={size}
-        height={size}
-        aria-hidden="true"
-      />
+      <OfMark size={size} />
     </span>
   );
 }

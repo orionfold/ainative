@@ -127,11 +127,14 @@ export default async function ProjectDetailPage({
             {COLUMN_ORDER.map((status) => {
               const pct = (statusCounts[status] / totalTasks) * 100;
               if (pct === 0) return null;
+              // Status distribution = functional status tokens (not the chart
+              // palette): cyan 'running' is the licensed live-state accent, the
+              // rest stay functional green/amber/neutral/red.
               const statusColors: Record<string, string> = {
                 planned: "var(--muted-foreground)",
-                queued: "var(--chart-4)",
-                running: "var(--chart-1)",
-                completed: "var(--chart-2)",
+                queued: "var(--status-warning)",
+                running: "var(--status-running)",
+                completed: "var(--status-completed)",
                 failed: "var(--destructive)",
               };
               return (
@@ -149,7 +152,7 @@ export default async function ProjectDetailPage({
               data={completionTrend}
               width={200}
               height={24}
-              color="var(--chart-2)"
+              color="var(--chart-1)"
               label="14-day completion trend"
               className="flex-1"
             />

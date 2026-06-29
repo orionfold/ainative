@@ -57,7 +57,7 @@ export function RecentProjects({ projects }: RecentProjectsProps) {
                       value={pct}
                       size={28}
                       strokeWidth={3}
-                      color="var(--chart-2)"
+                      color="var(--chart-1)"
                       label={`${project.name}: ${pct}% complete`}
                     />
                     <CardTitle className="min-w-0 truncate text-base font-medium">{project.name}</CardTitle>

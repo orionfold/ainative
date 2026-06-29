@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppSidebar } from "@/components/shared/app-sidebar";
@@ -18,13 +18,15 @@ import {
 } from "@/lib/theme";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+// Orionfold superfamily: Geist (display + body) + Geist Mono (data / eyebrows /
+// receipts). Loaded via next/font/google — self-hosted at build, no CDN.
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
@@ -93,7 +95,7 @@ export default async function RootLayout({
         <style dangerouslySetInnerHTML={{ __html: CRITICAL_THEME_CSS }} />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
       >
         <a href="#main-content" className="skip-nav">
           Skip to main content
