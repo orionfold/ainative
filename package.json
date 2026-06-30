@@ -1,7 +1,7 @@
 {
-  "name": "ainative-business",
+  "name": "orionfold-relay",
   "version": "0.15.0",
-  "description": "Companion software for the AI Native Business book — a local-first agent runtime and builder scaffold for AI-native businesses.",
+  "description": "Orionfold Relay — a local-first, multi-agent orchestration runtime and builder scaffold for AI-native work.",
   "keywords": [
     "ai",
     "agents",
@@ -17,13 +17,15 @@
     "orchestration",
     "solo-founder",
     "ai-business",
-    "ai-native-business",
-    "book-companion"
+    "ai-native",
+    "orionfold",
+    "relay"
   ],
   "license": "Apache-2.0",
   "type": "module",
   "bin": {
-    "ainative": "./dist/cli.js"
+    "relay": "./dist/cli.js",
+    "orionfold-relay": "./dist/cli.js"
   },
   "files": [
     "dist/",

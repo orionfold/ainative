@@ -61,7 +61,7 @@ if (_firstRunNeedsEnv) {
 // Load .env.local from the launch directory. For a local CLI launcher the
 // user's .env.local is the authoritative source of runtime config — it wins
 // over shell env so the `Fix` sidebar action actually takes effect on the
-// very next `npx ainative-business` invocation, regardless of stale exports
+// very next `npx orionfold-relay` invocation, regardless of stale exports
 // from earlier experiments or direnv-style tools.
 if (existsSync(_envLocalPath)) {
   for (const line of readFileSync(_envLocalPath, "utf-8").split("\n")) {
@@ -93,13 +93,13 @@ Data:
   Logs             ${join(dir, "logs")}
 
 Environment variables:
-  AINATIVE_DATA_DIR Custom data directory for the web app
+  RELAY_DATA_DIR   Custom data directory for the web app
   ANTHROPIC_API_KEY Claude runtime access
   OPENAI_API_KEY   OpenAI Codex runtime access
 
 Examples:
   node dist/cli.js --port 3210 --no-open
-  node dist/cli.js --data-dir ~/.ainative-dogfood --port 3100
+  node dist/cli.js --data-dir ~/.relay-dogfood --port 3100
   node dist/cli.js plugin dry-run my-plugin    # print confinement policy
   node dist/cli.js pack add ./my-pack          # install a Relay pack (folder or git url)
   node dist/cli.js pack list                   # list installed packs
@@ -108,18 +108,18 @@ Examples:
 }
 
 program
-  .name("ainative")
-  .description("Companion software for the AI Native Business book — a local-first agent runtime and builder scaffold for AI-native businesses.")
+  .name("relay")
+  .description("Orionfold Relay — a local-first, multi-agent orchestration runtime and builder scaffold for AI-native work.")
   .version(pkg.version)
   .addHelpText("after", getHelpText)
   .option("-p, --port <number>", "port to start on", "3000")
-  .option("--data-dir <path>", "custom data directory (overrides AINATIVE_DATA_DIR)")
+  .option("--data-dir <path>", "custom data directory (overrides RELAY_DATA_DIR)")
   .option("--reset", "delete the local database before starting")
   .option("--no-open", "don't auto-open browser")
   .option("--safe-mode", "disable Kind-1 plugin MCP servers; Kind-5 primitives bundles still load");
 
 /**
- * T14: `ainative plugin dry-run <pluginId>` — print the computed confinement
+ * T14: `relay plugin dry-run <pluginId>` — print the computed confinement
  * policy (mode, platform support, expanded sandbox-exec/aa-exec/docker args)
  * for a given plugin without actually spawning anything.
  *
@@ -140,7 +140,7 @@ if (isPluginSubcommand) {
     process.exit(1);
   }
   if (!pluginId) {
-    console.error("Usage: ainative plugin dry-run <pluginId>");
+    console.error("Usage: relay plugin dry-run <pluginId>");
     process.exit(1);
   }
   // Dynamic import keeps the confinement module + its dependency chain out of
@@ -154,7 +154,7 @@ if (isPluginSubcommand) {
 }
 
 if (isPackSubcommand) {
-  // `ainative pack add|list|remove|update` — installs/manages Relay packs.
+  // `relay pack add|list|remove|update` — installs/manages Relay packs.
   // Detected here, BEFORE program.parse(), so the pack path short-circuits the
   // default server-launch flow. The command logic is dynamically imported so
   // its DB/install dependency chain never enters the default startup graph
@@ -306,12 +306,12 @@ async function main() {
   });
   const sidecarUrl = buildSidecarUrl(actualPort);
 
-  console.log(`ainative ${pkg.version} — Community Edition`);
+  console.log(`Orionfold Relay ${pkg.version} — Community Edition`);
   console.log(`Data dir: ${DATA_DIR}`);
   console.log(`Mode: ${isPrebuilt ? "production" : "development"}`);
   console.log(`Next entry: ${nextEntrypoint}`);
-  console.log(`Starting ainative on ${sidecarUrl}`);
-  console.log(`Learn more → https://ainative.business`);
+  console.log(`Starting Relay on ${sidecarUrl}`);
+  console.log(`Learn more → https://orionfold.com`);
 
   const child = spawn(process.execPath, [nextEntrypoint, ...nextArgs], {
     cwd: effectiveCwd,
@@ -344,6 +344,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("Failed to start ainative:", err);
+  console.error("Failed to start Relay:", err);
   process.exit(1);
 });
