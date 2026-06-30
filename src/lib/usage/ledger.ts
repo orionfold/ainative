@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
+  customers,
   projects,
   schedules,
   tasks,
@@ -41,6 +42,7 @@ export interface UsageLedgerWriteInput extends UsageSnapshot {
   workflowId?: string | null;
   scheduleId?: string | null;
   projectId?: string | null;
+  customerId?: string | null;
   activityType: UsageActivityType;
   runtimeId: string;
   providerId: string;
@@ -83,6 +85,16 @@ export interface ProviderModelBreakdownEntry {
   totalTokens: number;
   runs: number;
   unknownPricingRuns: number;
+}
+
+export interface CostByCustomerEntry {
+  customerId: string | null;
+  customerName: string; // "Unattributed" when customerId is null
+  costMicros: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  runs: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -203,6 +215,21 @@ export function resolveUsageActivityType(input: {
 }
 
 export async function recordUsageLedgerEntry(input: UsageLedgerWriteInput) {
+  // Customer attribution: prefer an explicit customerId; otherwise inherit it from the
+  // project the work belongs to (project → customer). Resolving here, at the single
+  // ledger-write funnel, auto-attributes every project-scoped write without threading
+  // customerId through all callers. Best-effort: absence of a customer is not a failure,
+  // it surfaces as the "Unattributed" bucket in the rollup. See _SPECS/customer-dimension.md.
+  let resolvedCustomerId = input.customerId ?? null;
+  if (resolvedCustomerId == null && input.projectId != null) {
+    const project = await db
+      .select({ customerId: projects.customerId })
+      .from(projects)
+      .where(eq(projects.id, input.projectId))
+      .get();
+    resolvedCustomerId = project?.customerId ?? null;
+  }
+
   const normalizedInputTokens = input.inputTokens ?? null;
   const normalizedOutputTokens = input.outputTokens ?? null;
   const normalizedTotalTokens =
@@ -234,6 +261,7 @@ export async function recordUsageLedgerEntry(input: UsageLedgerWriteInput) {
     workflowId: input.workflowId ?? null,
     scheduleId: input.scheduleId ?? null,
     projectId: input.projectId ?? null,
+    customerId: resolvedCustomerId,
     activityType: input.activityType,
     runtimeId: input.runtimeId,
     providerId: input.providerId,
@@ -379,6 +407,75 @@ export async function getProviderModelBreakdown(options?: {
   return Array.from(totals.values()).sort(
     (left, right) => right.costMicros - left.costMicros
   );
+}
+
+// Per-customer cost rollup over a trailing window. Mirrors getProviderModelBreakdown's
+// Map-reduce + name-join idiom. The null customerId path is FIRST-CLASS: rows with no
+// customer aggregate into a single "Unattributed" bucket (Principle #3 — shadow paths;
+// never silently drop a row). Customer names are joined back via the inArray + Map
+// pattern from listUsageAuditEntries. See _SPECS/customer-dimension.md.
+export async function getCostByCustomer(days = 7): Promise<CostByCustomerEntry[]> {
+  const rows = await db
+    .select()
+    .from(usageLedger)
+    .where(gte(usageLedger.finishedAt, startOfWindow(days)));
+
+  const totals = new Map<
+    string,
+    {
+      customerId: string | null;
+      costMicros: number;
+      inputTokens: number;
+      outputTokens: number;
+      totalTokens: number;
+      runs: number;
+    }
+  >();
+
+  rows.forEach((row) => {
+    const key = row.customerId ?? "__unattributed__";
+    const bucket = totals.get(key) ?? {
+      customerId: row.customerId ?? null,
+      costMicros: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      runs: 0,
+    };
+    bucket.costMicros += row.costMicros ?? 0;
+    bucket.inputTokens += row.inputTokens ?? 0;
+    bucket.outputTokens += row.outputTokens ?? 0;
+    bucket.totalTokens += row.totalTokens ?? 0;
+    bucket.runs += 1;
+    totals.set(key, bucket);
+  });
+
+  // Resolve display names for the attributed buckets in one query.
+  const customerIds = Array.from(totals.values())
+    .map((b) => b.customerId)
+    .filter((id): id is string => id != null);
+  const customerRows = customerIds.length
+    ? await db
+        .select({ id: customers.id, name: customers.name })
+        .from(customers)
+        .where(inArray(customers.id, customerIds))
+    : [];
+  const nameMap = new Map(customerRows.map((row) => [row.id, row.name]));
+
+  return Array.from(totals.values())
+    .map((bucket): CostByCustomerEntry => ({
+      customerId: bucket.customerId,
+      customerName:
+        bucket.customerId == null
+          ? "Unattributed"
+          : nameMap.get(bucket.customerId) ?? "Unknown customer",
+      costMicros: bucket.costMicros,
+      inputTokens: bucket.inputTokens,
+      outputTokens: bucket.outputTokens,
+      totalTokens: bucket.totalTokens,
+      runs: bucket.runs,
+    }))
+    .sort((left, right) => right.costMicros - left.costMicros);
 }
 
 export async function listUsageAuditEntries(options?: {

@@ -259,6 +259,176 @@ describe("usage ledger", () => {
     );
   });
 
+  it("persists customerId when supplied and null when absent", async () => {
+    const { db, customers, usageLedger, recordUsageLedgerEntry } = await loadUsageModules();
+    const customerId = crypto.randomUUID();
+    const now = new Date("2026-03-12T00:00:00.000Z");
+
+    await db.insert(customers).values({
+      id: customerId,
+      name: "Acme Realty",
+      slug: "acme-realty",
+      status: "active",
+      industry: null,
+      notes: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await recordUsageLedgerEntry({
+      activityType: "task_assist",
+      runtimeId: "claude-code",
+      providerId: "anthropic",
+      modelId: "claude-sonnet-4-20250514",
+      inputTokens: 100,
+      outputTokens: 50,
+      totalTokens: 150,
+      status: "completed",
+      customerId,
+      startedAt: new Date("2026-03-12T08:00:00.000Z"),
+      finishedAt: new Date("2026-03-12T08:01:00.000Z"),
+    });
+
+    await recordUsageLedgerEntry({
+      activityType: "task_assist",
+      runtimeId: "claude-code",
+      providerId: "anthropic",
+      modelId: "claude-sonnet-4-20250514",
+      inputTokens: 100,
+      outputTokens: 50,
+      totalTokens: 150,
+      status: "completed",
+      startedAt: new Date("2026-03-12T09:00:00.000Z"),
+      finishedAt: new Date("2026-03-12T09:01:00.000Z"),
+    });
+
+    const rows = await db.select().from(usageLedger);
+    expect(rows).toHaveLength(2);
+
+    const attributed = rows.find(
+      (row) => row.finishedAt.getTime() === new Date("2026-03-12T08:01:00.000Z").getTime()
+    );
+    const unattributed = rows.find(
+      (row) => row.finishedAt.getTime() === new Date("2026-03-12T09:01:00.000Z").getTime()
+    );
+    expect(attributed?.customerId).toBe(customerId);
+    expect(unattributed?.customerId).toBeNull();
+  });
+
+  it("inherits customerId from the project when not explicitly supplied", async () => {
+    const { db, customers, projects, recordUsageLedgerEntry, usageLedger } =
+      await loadUsageModules();
+    const customerId = crypto.randomUUID();
+    const projectId = crypto.randomUUID();
+    const now = new Date("2026-03-13T00:00:00.000Z");
+
+    await db.insert(customers).values({
+      id: customerId,
+      name: "Beacon Nonprofit",
+      slug: "beacon-nonprofit",
+      status: "active",
+      industry: null,
+      notes: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+    await db.insert(projects).values({
+      id: projectId,
+      name: "Beacon Annual Report",
+      description: null,
+      workingDirectory: null,
+      customerId,
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // No customerId in the input — it must be resolved from project.customerId.
+    await recordUsageLedgerEntry({
+      projectId,
+      activityType: "task_run",
+      runtimeId: "claude-code",
+      providerId: "anthropic",
+      modelId: "claude-sonnet-4-20250514",
+      inputTokens: 100,
+      outputTokens: 50,
+      totalTokens: 150,
+      status: "completed",
+      startedAt: new Date("2026-03-13T08:00:00.000Z"),
+      finishedAt: new Date("2026-03-13T08:01:00.000Z"),
+    });
+
+    const [row] = await db.select().from(usageLedger);
+    expect(row.projectId).toBe(projectId);
+    expect(row.customerId).toBe(customerId);
+  });
+
+  it("rolls up cost per customer and buckets unattributed spend", async () => {
+    const { db, customers, recordUsageLedgerEntry, getCostByCustomer } =
+      await loadUsageModules();
+    const customerId = crypto.randomUUID();
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    const finish = new Date(now.getTime() - 60_000);
+
+    await db.insert(customers).values({
+      id: customerId,
+      name: "Meridian Commercial Realty",
+      slug: "meridian-cre",
+      status: "active",
+      industry: "CRE",
+      notes: null,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Two attributed entries for the same customer (should sum into one bucket).
+    for (const offset of [0, 30_000]) {
+      await recordUsageLedgerEntry({
+        activityType: "task_assist",
+        runtimeId: "claude-code",
+        providerId: "anthropic",
+        modelId: "claude-sonnet-4-20250514",
+        inputTokens: 1_000,
+        outputTokens: 500,
+        totalTokens: 1_500,
+        status: "completed",
+        customerId,
+        startedAt: new Date(finish.getTime() - 60_000 + offset),
+        finishedAt: new Date(finish.getTime() + offset),
+      });
+    }
+
+    // One entry with no customer — must land in the "Unattributed" bucket, not dropped.
+    await recordUsageLedgerEntry({
+      activityType: "task_run",
+      runtimeId: "claude-code",
+      providerId: "anthropic",
+      modelId: "claude-sonnet-4-20250514",
+      inputTokens: 200,
+      outputTokens: 100,
+      totalTokens: 300,
+      status: "completed",
+      startedAt: new Date(finish.getTime() - 60_000),
+      finishedAt: finish,
+    });
+
+    const rollup = await getCostByCustomer(7);
+
+    const meridian = rollup.find((r) => r.customerId === customerId);
+    expect(meridian).toBeDefined();
+    expect(meridian?.customerName).toBe("Meridian Commercial Realty");
+    expect(meridian?.runs).toBe(2);
+    expect(meridian?.totalTokens).toBe(3_000);
+    expect(meridian?.costMicros).toBe(21_000); // 2 × 10,500 (sonnet $3/$15 on 1k/500)
+
+    const unattributed = rollup.find((r) => r.customerId === null);
+    expect(unattributed).toBeDefined();
+    expect(unattributed?.customerName).toBe("Unattributed");
+    expect(unattributed?.runs).toBe(1);
+    expect(unattributed?.totalTokens).toBe(300);
+  });
+
   it("filters audit rows by runtime, status, activity type, and date range", async () => {
     const { listUsageAuditEntries, recordUsageLedgerEntry } = await loadUsageModules();
 

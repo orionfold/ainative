@@ -9,6 +9,7 @@ import {
   workflows,
   schedules,
   projects,
+  customers,
   usageLedger,
   views,
   environmentSyncOps,
@@ -136,6 +137,9 @@ export function clearAllData() {
   const workflowsDeleted = step("workflows", () => db.delete(workflows).run().changes);
   const schedulesDeleted = step("schedules", () => db.delete(schedules).run().changes);
   const projectsDeleted = step("projects", () => db.delete(projects).run().changes);
+  // customers is referenced by projects.customerId + usageLedger.customerId — delete
+  // after both (usageLedger line above, projects just above) to stay FK-safe.
+  const customersDeleted = step("customers", () => db.delete(customers).run().changes);
 
   // Wipe uploaded files
   let filesDeleted = 0;
@@ -164,6 +168,7 @@ export function clearAllData() {
   return {
     sampleProfiles: sampleProfilesDeleted,
     views: viewsDeleted,
+    customers: customersDeleted,
     projects: projectsDeleted,
     tasks: tasksDeleted,
     workflows: workflowsDeleted,

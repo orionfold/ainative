@@ -2,6 +2,7 @@ import type Database from "better-sqlite3";
 import { readMigrationFiles } from "drizzle-orm/migrator";
 
 const LEGACY_DATA_TABLES = [
+  "customers",
   "projects",
   "tasks",
   "workflows",
@@ -49,6 +50,20 @@ const LEGACY_DATA_TABLES = [
 
 export function bootstrapAinativeDatabase(sqlite: Database.Database): void {
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS customers (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      status TEXT DEFAULT 'active' NOT NULL,
+      industry TEXT,
+      notes TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_slug ON customers(slug);
+    CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
+
     CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
@@ -319,6 +334,13 @@ export function bootstrapAinativeDatabase(sqlite: Database.Database): void {
 
   addColumnIfMissing(`ALTER TABLE projects ADD COLUMN working_directory TEXT;`);
   addColumnIfMissing(`ALTER TABLE schedules ADD COLUMN assigned_agent TEXT;`);
+
+  // Customer dimension: nullable FK on projects + usage_ledger (zero-regression for
+  // existing rows). The customers table is created in the exec block above, so these
+  // ALTERs resolve their REFERENCES target. See _SPECS/customer-dimension.md.
+  addColumnIfMissing(`ALTER TABLE projects ADD COLUMN customer_id TEXT REFERENCES customers(id);`);
+  addColumnIfMissing(`ALTER TABLE usage_ledger ADD COLUMN customer_id TEXT REFERENCES customers(id);`);
+  sqlite.exec(`CREATE INDEX IF NOT EXISTS idx_usage_ledger_customer_id ON usage_ledger(customer_id);`);
 
   // Heartbeat scheduler columns
   addColumnIfMissing(`ALTER TABLE schedules ADD COLUMN type TEXT DEFAULT 'scheduled' NOT NULL;`);

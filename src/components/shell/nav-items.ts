@@ -13,6 +13,7 @@ import {
   ListTodo,
   Table2,
   Sparkles,
+  Users,
 } from "lucide-react";
 
 // Single source of truth for the navigation IA, consumed by the in-bar
@@ -61,6 +62,7 @@ const composeItems: NavItem[] = [
 ];
 
 const dataItems: NavItem[] = [
+  { title: "Customers", href: "/customers", icon: Users, description: "Accounts you run ops for", alsoMatches: ["/customers/"] },
   { title: "Schedules", href: "/schedules", icon: Clock, description: "Recurring automated runs" },
   { title: "Documents", href: "/documents", icon: FileText, description: "Shared context library" },
   { title: "Tables", href: "/tables", icon: Table2, description: "Structured data views", alsoMatches: ["/tables/"] },

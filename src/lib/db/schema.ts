@@ -1,11 +1,37 @@
 import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import type { InferSelectModel } from "drizzle-orm";
 
+// Customer dimension (Core): a first-class account/client a tenant runs ops for.
+// `slug` is the stable, pack-addressable handle (a pack seed references a customer
+// by slug; customerId FKs resolve through it). `industry` is free-text, NOT an enum
+// — different packs introduce different verticals, so a Core-level enum would be a
+// ceiling a pack cannot extend. See _SPECS/customer-dimension.md.
+export const customers = sqliteTable(
+  "customers",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    status: text("status", { enum: ["active", "archived"] })
+      .default("active")
+      .notNull(),
+    industry: text("industry"),
+    notes: text("notes"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_customers_slug").on(table.slug),
+    index("idx_customers_status").on(table.status),
+  ]
+);
+
 export const projects = sqliteTable("projects", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   workingDirectory: text("working_directory"),
+  customerId: text("customer_id").references(() => customers.id),
   status: text("status", { enum: ["active", "paused", "completed"] })
     .default("active")
     .notNull(),
@@ -355,6 +381,7 @@ export const usageLedger = sqliteTable(
     workflowId: text("workflow_id").references(() => workflows.id),
     scheduleId: text("schedule_id").references(() => schedules.id),
     projectId: text("project_id").references(() => projects.id),
+    customerId: text("customer_id").references(() => customers.id),
     activityType: text("activity_type", {
       enum: [
         "task_run",
@@ -1179,6 +1206,7 @@ export const userTableRowHistory = sqliteTable(
 );
 
 // Shared types derived from schema — use these in components instead of `as any`
+export type CustomerRow = InferSelectModel<typeof customers>;
 export type ProjectRow = InferSelectModel<typeof projects>;
 export type TaskRow = InferSelectModel<typeof tasks>;
 export type WorkflowRow = InferSelectModel<typeof workflows>;

@@ -8,7 +8,7 @@ import {
 } from "../nav-items";
 
 describe("nav-items", () => {
-  it("exposes the four IA groups with 13 routes total", () => {
+  it("exposes the four IA groups with 14 routes total", () => {
     // The `configure` group was dissolved per _SPECS/feature-cut-freeze.md:
     // Environment deferred, Analytics deprecated, Settings moved to the app-bar.
     expect(NAV_GROUPS.map((g) => g.id)).toEqual([
@@ -18,7 +18,7 @@ describe("nav-items", () => {
       "observe",
     ]);
     const total = NAV_GROUPS.reduce((n, g) => n + g.items.length, 0);
-    expect(total).toBe(13);
+    expect(total).toBe(14);
   });
 
   it("keeps the cut routes out of every nav group", () => {
@@ -61,6 +61,8 @@ describe("nav-items", () => {
     it("maps a route to its owning group (incl. the new Data split)", () => {
       expect(activeGroupId("/")).toBe("home");
       expect(activeGroupId("/workflows/abc")).toBe("compose");
+      expect(activeGroupId("/customers")).toBe("data");
+      expect(activeGroupId("/customers/abc-123")).toBe("data");
       expect(activeGroupId("/schedules")).toBe("data");
       expect(activeGroupId("/documents")).toBe("data");
       expect(activeGroupId("/costs")).toBe("observe");
