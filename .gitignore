@@ -80,6 +80,7 @@ CLAUDE.local.md
 .claude/commands/
 .claude/rules/
 .claude/hooks/
+.claude/handoff-profile.yaml
 
 # AI Native Business book — authoring + content extracted to the private
 # ~/orionfold/books repo (2026-06). The book stays out of the open ainative
