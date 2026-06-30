@@ -141,7 +141,7 @@ const ProfileConfigSchema = z.object({
 });
 ```
 
-### 13 Built-in Profiles
+### 21 Built-in Profiles
 
 | ID | Domain | Key Capability | Tags |
 |---|---|---|---|
@@ -233,7 +233,7 @@ Each profile.yaml includes a `tests:` section with sample task descriptions and 
 ## Acceptance Criteria
 
 - [ ] Registry discovers profiles by scanning `.claude/skills/*/profile.yaml`
-- [ ] 13 built-in profiles load with validated SKILL.md + profile.yaml pairs
+- [ ] 21 built-in profiles load with validated SKILL.md + profile.yaml pairs
 - [ ] Any CC skill with a `profile.yaml` sidecar becomes an available agent profile
 - [ ] Profile's SKILL.md content prepended as system prompt during task execution
 - [ ] Profile's allowedTools passed to Agent SDK `query()` options
@@ -247,7 +247,7 @@ Each profile.yaml includes a `tests:` section with sample task descriptions and 
 
 ## Scope Boundaries
 
-**Included:** 13 built-in profiles, profile registry with filesystem scanning, gallery UI, profile editor, profile selector, GitHub import/export, behavioral smoke tests, CC primitives mapping
+**Included:** 21 built-in profiles, profile registry with filesystem scanning, gallery UI, profile editor, profile selector, GitHub import/export, behavioral smoke tests, CC primitives mapping
 
 **Excluded:**
 - Profile marketplace with ratings/reviews (let community patterns emerge first)

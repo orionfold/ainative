@@ -196,7 +196,7 @@ export function InstanceSection() {
   }
 
   // npx install: no git repo, so upgrade machinery doesn't apply.
-  // Users upgrade via `npx ainative-business@latest`, not via git merge.
+  // Users upgrade via `npx orionfold-relay@latest`, not via git merge.
   if (state?.skippedReason === "no_git") {
     return (
       <section className="rounded-xl border bg-card px-5 py-3 flex items-start justify-between gap-4 flex-wrap">
@@ -210,7 +210,7 @@ export function InstanceSection() {
           This folder has no <code className="font-mono text-[11px] px-1 py-0.5 rounded bg-muted">.git</code> directory.
           To upgrade, run{" "}
           <code className="font-mono text-[11px] px-1 py-0.5 rounded bg-muted">
-            npx ainative-business@latest
+            npx orionfold-relay@latest
           </code>
           . Git-based upgrades (upstream merges, pre-push hooks) only apply to cloned repos.
         </p>

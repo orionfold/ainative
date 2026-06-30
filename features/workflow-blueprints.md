@@ -25,7 +25,7 @@ As a power user, I want to create and share custom blueprints as portable YAML f
 
 ### Blueprint Storage
 
-- **Built-in**: `src/lib/workflows/blueprints/*.yaml` (8 blueprints shipped)
+- **Built-in**: `src/lib/workflows/blueprints/*.yaml` (15 blueprints shipped)
 - **User custom**: `~/.ainative/blueprints/*.yaml`
 - **Registry**: `src/lib/workflows/blueprints/registry.ts` — loads, validates, and indexes blueprints
 - **Instantiator**: `src/lib/workflows/blueprints/instantiator.ts` — resolves `{{variables}}` and creates concrete workflows
@@ -289,7 +289,7 @@ my-ainative-pack/
 
 ## Acceptance Criteria
 
-- [ ] Registry loads 8 blueprints from YAML validated by Zod
+- [ ] Registry loads 15 blueprints from YAML validated by Zod
 - [ ] Blueprint gallery integrated into `/workflows` page with domain filtering and search
 - [ ] Blueprint preview shows steps, profiles used, and required variables
 - [ ] Dynamic form generated from blueprint variable definitions
@@ -317,5 +317,5 @@ my-ainative-pack/
 
 - Depends on: [`multi-agent-routing`](multi-agent-routing.md) — profile registry and execution integration
 - Depends on: [`workflow-engine`](workflow-engine.md) — workflow patterns (sequence, planner-executor, checkpoint) and step execution
-- Depends on: [`agent-profile-catalog`](agent-profile-catalog.md) — 13 profiles referenced by blueprint steps
+- Depends on: [`agent-profile-catalog`](agent-profile-catalog.md) — 21 profiles referenced by blueprint steps
 - Architecture: Blueprints at `src/lib/workflows/blueprints/`; engine at `src/lib/workflows/engine.ts`; profiles at `src/lib/agents/profiles/registry.ts`

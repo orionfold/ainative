@@ -19,10 +19,10 @@ import { hasGitDir, isDevMode } from "@/lib/instance/detect";
  *   returns `{ devMode: true }`. Prevents stale instance rows from prior
  *   testing from surfacing as if the dev repo were a real instance.
  *
- * - no .git directory (typical `npx ainative-business` install): returns
+ * - no .git directory (typical `npx orionfold-relay` install): returns
  *   `{ skippedReason: "no_git" }`. The upgrade feature requires a git
  *   repo (fetch + merge + pre-push hook) and doesn't apply to npx users,
- *   who upgrade via `npx ainative-business@latest`. The UI uses this flag
+ *   who upgrade via `npx orionfold-relay@latest`. The UI uses this flag
  *   to render an accurate notice instead of a false "setup incomplete"
  *   warning.
  *

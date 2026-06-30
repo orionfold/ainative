@@ -2,35 +2,35 @@
 
 > Companion software for the *AI Native Business* book by Manav Sehgal — a local-first agent runtime and builder scaffold for AI-native businesses.
 
-[![AI Business Operating System](https://img.shields.io/badge/AI_Business-Operating_System-6366F1)](https://ainative.business) [![npm](https://img.shields.io/npm/v/ainative-business)](https://www.npmjs.com/package/ainative-business) [![Next.js 16](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/) [![React 19](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6)](https://www.typescriptlang.org/) [![Claude Agent SDK](https://img.shields.io/badge/Claude-Agent_SDK-D97706)](https://docs.anthropic.com/) [![OpenAI Codex App Server](https://img.shields.io/badge/OpenAI-Codex_App_Server-10A37F)](https://developers.openai.com/codex/app-server) [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![AI Business Operating System](https://img.shields.io/badge/AI_Business-Operating_System-6366F1)](https://ainative.business) [![npm](https://img.shields.io/npm/v/orionfold-relay)](https://www.npmjs.com/package/orionfold-relay) [![Next.js 16](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/) [![React 19](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6)](https://www.typescriptlang.org/) [![Claude Agent SDK](https://img.shields.io/badge/Claude-Agent_SDK-D97706)](https://docs.anthropic.com/) [![OpenAI Codex App Server](https://img.shields.io/badge/OpenAI-Codex_App_Server-10A37F)](https://developers.openai.com/codex/app-server) [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **[ainative.business](https://ainative.business)** · **[GitHub](https://github.com/manavsehgal/ainative)**
 
 ## Quick Start
 
 ```bash
-npx ainative-business
+npx orionfold-relay
 ```
 
 Open [localhost:3000](http://localhost:3000). That's it — zero config, local SQLite, own your data.
 
 **Profiles & Policies** · **Blueprints & Schedules** · **Built-in Playbook** · **Open Source**
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/home-list.png" alt="ainative-business home workspace" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/home-list.png" alt="Orionfold Relay home workspace" width="1200" />
 
 | Home Workspace | Reusable Profiles | Workflow Blueprints | Governed Execution |
 |:-:|:-:|:-:|:-:|
 | Workspace briefing with active work, pending review, project signals, and live activity | Specialist definitions with prompts, tool policy, and runtime tuning you can reuse | Pre-configured templates with dynamic forms, YAML editing, and lineage tracking | Human-in-the-loop approvals, tool permissions, and ambient supervision |
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/home-below-fold.png" alt="ainative-business home workspace below fold — projects, activity feed, and signals" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/home-below-fold.png" alt="Orionfold Relay home workspace below fold — projects, activity feed, and signals" width="1200" />
 
 ---
 
-## Why `ainative-business`
+## Why `orionfold-relay`
 
-The AI agent stack is broken for business operators. You can spin up an agent in minutes — but running it reliably for real work means stitching together orchestration, governance, cost controls, and team coordination yourself. `ainative-business` closes that gap with a single local-first platform where agents do the work and you stay in control.
+The AI agent stack is broken for business operators. You can spin up an agent in minutes — but running it reliably for real work means stitching together orchestration, governance, cost controls, and team coordination yourself. `orionfold-relay` closes that gap with a single local-first platform where agents do the work and you stay in control.
 
-- **Local-first** — SQLite database, no cloud dependency, `npx ainative-business` and go
+- **Local-first** — SQLite database, no cloud dependency, `npx orionfold-relay` and go
 - **Multi-provider** — Claude Code + OpenAI Codex App Server behind one runtime registry
 - **Your rules, enforced** — Tool permissions, inbox approvals, and audit trails for every agent action
 - **Your AI team** — 21 specialist profiles ready to deploy, each with instructions, tool policies, and runtime tuning
@@ -51,7 +51,7 @@ Author, AI Native Business open book. 2M+ Kaggle views. Ex Amazon AGI.
 
 #### A personal research project
 
-`ainative-business` & AI Native Business — Free and open source. Building AI Native Business over weekends, using personal laptop and capped AI plans.
+`orionfold-relay` & AI Native Business — Free and open source. Building AI Native Business over weekends, using personal laptop and capped AI plans.
 
 #### Executive Credentials
 
@@ -61,7 +61,7 @@ Author, AI Native Business open book. 2M+ Kaggle views. Ex Amazon AGI.
 
 #### Short version
 
-> "`ainative-business` is a personal research project exploring what it takes to build AI-native on a shoestring budget over weekends." The AI Native Business open book serves as its 14-chapter playbook expanding this research.
+> "`orionfold-relay` is a personal research project exploring what it takes to build AI-native on a shoestring budget over weekends." The AI Native Business open book serves as its 14-chapter playbook expanding this research.
 
 ### Bio
 
@@ -69,11 +69,11 @@ Manav is a solutions leader at AWS Frontier AI, collaborating with Anthropic, NV
 
 ### Research Premise
 
-"`ainative-business` is a personal research project exploring what an AI-native operating system looks like." The AI Native Business book is its 14-chapter playbook for building autonomous business systems with AI agents.
+"`orionfold-relay` is a personal research project exploring what an AI-native operating system looks like." The AI Native Business book is its 14-chapter playbook for building autonomous business systems with AI agents.
 
 ### Attribution
 
-`ainative-business` and AI Native Business are personal works of Manav Sehgal created in own personal time and resources. While they may refer to AWS technologies which enable the AI Native promise, the opinions expressed in the website are author's personal opinions and not that of the employer.
+`orionfold-relay` and AI Native Business are personal works of Manav Sehgal created in own personal time and resources. While they may refer to AWS technologies which enable the AI Native promise, the opinions expressed in the website are author's personal opinions and not that of the employer.
 
 ### Previously published
 
@@ -86,7 +86,7 @@ Manav is a solutions leader at AWS Frontier AI, collaborating with Anthropic, NV
 
 ## Runtime Bridge
 
-Run the same business process on different AI providers without changing a line of configuration. `ainative-business`'s shared runtime registry routes tasks, schedules, and workflow steps through **Claude Code** (Anthropic Claude Agent SDK) and **OpenAI Codex App Server**, landing everything in the same inbox, monitoring, and cost surfaces. Switching providers is a settings change, not a rewrite.
+Run the same business process on different AI providers without changing a line of configuration. `orionfold-relay`'s shared runtime registry routes tasks, schedules, and workflow steps through **Claude Code** (Anthropic Claude Agent SDK) and **OpenAI Codex App Server**, landing everything in the same inbox, monitoring, and cost surfaces. Switching providers is a settings change, not a rewrite.
 
 ---
 
@@ -132,7 +132,7 @@ Run the same business process on different AI providers without changing a line 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/architecture-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/architecture-light.svg">
-  <img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/architecture-light.svg" alt="ainative-business architecture diagram" width="900" />
+  <img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/architecture-light.svg" alt="Orionfold Relay architecture diagram" width="900" />
 </picture>
 
 **Key design decisions:**
@@ -159,7 +159,7 @@ Workspace-level briefing with active work, pending review, failed items, project
 #### Task Execution
 Status-driven execution board with five columns: Planned → Queued → Running → Completed → Failed. Filter across projects, create tasks inline, and open task detail to inspect status, description, and runtime state without leaving the board.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/tasks-list.png" alt="ainative-business tasks kanban board" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/tasks-list.png" alt="Orionfold Relay tasks kanban board" width="1200" />
 
 | Below the Fold |
 |:-:|
@@ -175,7 +175,7 @@ Create and organize projects as containers for related tasks. Each project can s
 ### Agent
 
 #### Provider Runtimes
-`ainative-business` supports two governed execution runtimes behind a shared runtime registry:
+`orionfold-relay` supports two governed execution runtimes behind a shared runtime registry:
 - **Claude Code** via the Anthropic Claude Agent SDK
 - **OpenAI Codex App Server** via `codex app-server`
 
@@ -185,12 +185,12 @@ Tasks, schedules, and workflow steps can target a runtime explicitly, while sett
 Claude Agent SDK integration with the `canUseTool` polling pattern remains the default Claude execution path. Tasks are dispatched fire-and-forget and run asynchronously, while every tool call, reasoning step, and decision is surfaced through inbox approvals and monitor logs.
 
 #### OpenAI Codex Runtime
-OpenAI Codex App Server is integrated as `ainative-business`'s second governed runtime. Codex-backed tasks preserve project working directories, document context, resumable thread IDs, inbox approval requests, user questions, and provider-labeled logs. The same runtime can also power task assist, scheduled firings, and workflow child tasks.
+OpenAI Codex App Server is integrated as `orionfold-relay`'s second governed runtime. Codex-backed tasks preserve project working directories, document context, resumable thread IDs, inbox approval requests, user questions, and provider-labeled logs. The same runtime can also power task assist, scheduled firings, and workflow child tasks.
 
 #### Agent Profiles
 Profile-backed execution with specialist definitions for different job types. Each profile packages instructions, allowed tools, max turns, and output format so teams can reuse behavior intentionally instead of relying on ad hoc prompts. Profile cards display role-based icon circles with keyword-inferred colors (blue for work, purple for personal), alongside domain tags, runtime badges, and tool counts. Workflow steps and schedules can reference profiles directly, and runtimes can be selected independently when provider support differs.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/profiles-list.png" alt="ainative-business agent profiles with role-based icon circles" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/profiles-list.png" alt="Orionfold Relay agent profiles with role-based icon circles" width="1200" />
 
 #### Workflows
 Multi-step task orchestration with six patterns:
@@ -204,7 +204,7 @@ Multi-step task orchestration with six patterns:
 State machine engine with step-level retry, project association, and real-time status visualization.
 
 #### Parallel + Swarm Workflows
-`ainative-business` supports two bounded expansion patterns on top of the workflow engine:
+`orionfold-relay` supports two bounded expansion patterns on top of the workflow engine:
 - **Parallel research fork/join** — 2-5 concurrent branches followed by one synthesis step
 - **Swarm orchestration** — mayor → worker pool → refinery with retryable stages and configurable worker concurrency
 
@@ -234,7 +234,7 @@ Curated agent profiles across work and personal domains, built as portable Claud
 #### Workflow Blueprints
 Pre-configured workflow templates across work and personal domains. Browse blueprints in a gallery with pattern-colored icon circles, domain tags, and difficulty badges. Preview steps and required variables, fill in a dynamic form, and create draft workflows with resolved prompts and profile assignments. Create custom blueprints via YAML or import from GitHub URLs. Lineage tracking connects workflows back to their source blueprint.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/workflows-list.png" alt="ainative-business workflows with keyword-inferred icon circles" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/workflows-list.png" alt="Orionfold Relay workflows with keyword-inferred icon circles" width="1200" />
 
 | Workflow Detail |
 |:-:|
@@ -279,12 +279,12 @@ Airtable-like structured data system at `/tables` with 14 features. Create table
 #### Playbook
 Built-in documentation system at `/playbook` with usage-stage awareness that adapts content to your experience level (new, early, active, power user). Browse feature reference docs and guided learning journeys organized by persona (Personal, Work, Power User, Developer). Adoption heatmap tracks which features you've explored, while journey cards show progress through multi-step learning paths. Markdown rendering with automatic internal link resolution, table of contents, related docs, and screengrab embedding.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/user-guide-list.png" alt="ainative-business playbook documentation" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/user-guide-list.png" alt="Orionfold Relay playbook documentation" width="1200" />
 
 ### Environment
 
 #### Environment
-`ainative-business` doubles as a **control plane for AI coding environments** — scanning, caching, and syncing configuration for Claude Code and Codex CLI across projects. The environment dashboard surfaces detected tools, active configurations, git checkpoint status, and health scores.
+`orionfold-relay` doubles as a **control plane for AI coding environments** — scanning, caching, and syncing configuration for Claude Code and Codex CLI across projects. The environment dashboard surfaces detected tools, active configurations, git checkpoint status, and health scores.
 
 - **Environment Scanner** — detects Claude Code and Codex CLI configurations, MCP servers, skills, and project settings
 - **Environment Cache** — persists scanned state for fast dashboard rendering without re-scanning
@@ -298,7 +298,7 @@ Built-in documentation system at `/playbook` with usage-stage awareness that ada
 - **Environment Health Scoring** — composite health score based on configuration completeness and freshness
 - **Agent Profile from Environment** — auto-generate agent profiles from detected environment capabilities
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/environment-list.png" alt="ainative-business environment dashboard" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/environment-list.png" alt="Orionfold Relay environment dashboard" width="1200" />
 
 #### Browser Tools
 Enable browser automation in chat and task execution through two MCP integrations: **Chrome DevTools MCP** (29 tools for connecting to a running Chrome instance via CDP) and **Playwright MCP** (50+ tools for headless browser automation). Configure both from Settings with independent toggles and permission tiering — read-only operations auto-approve while mutations are gated through the inbox approval flow.
@@ -320,7 +320,7 @@ Hourly poller checks the upstream `origin/main` for new commits and surfaces the
 #### Schedules
 Time-based scheduling for agent tasks with human-friendly intervals (`5m`, `2h`, `1d`) and raw 5-field cron expressions. One-shot and recurring modes with pause/resume lifecycle, expiry limits, and max firings. Each firing creates a child task through the shared execution pipeline, and schedules can now target a runtime explicitly. Scheduler runs as a poll-based engine started via Next.js instrumentation hook.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/schedules-list.png" alt="ainative-business schedules" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/schedules-list.png" alt="Orionfold Relay schedules" width="1200" />
 
 #### Micro-Visualizations
 Pure SVG chart primitives (Sparkline, MiniBar, DonutRing) with zero charting dependencies. Integrated into: homepage stats cards (7-day trends), activity feed (24h bar chart), project cards (completion donuts), monitor overview (success rate), and project detail (stacked status + 14-day sparkline). Full accessibility with `role="img"` and `aria-label`.
@@ -328,23 +328,23 @@ Pure SVG chart primitives (Sparkline, MiniBar, DonutRing) with zero charting dep
 #### Cost & Usage
 Provider-normalized metering tracks token and spend activity across tasks, resumes, workflow child tasks, schedules, task assist, and profile tests. The dedicated `Cost & Usage` surface adds summary cards, trend views, provider/model breakdowns, and budget-aware audit visibility on top of the usage ledger.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/costs-list.png" alt="ainative-business cost and usage dashboard" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/costs-list.png" alt="Orionfold Relay cost and usage dashboard" width="1200" />
 
 ### UI & DevEx
 
 #### Inbox & Human-in-the-Loop
 When an agent needs approval or input, a notification appears in your inbox. Review tool permission requests with "Allow Once" / "Always Allow" / "Deny" buttons, answer agent questions, and see task completion summaries. Supports bulk dismiss and 10s polling.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/inbox-list.png" alt="ainative-business inbox approval flow" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/inbox-list.png" alt="Orionfold Relay inbox approval flow" width="1200" />
 
 | Expanded Notification |
 |:-:|
 | <img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/inbox-expanded.png" alt="Inbox notification expanded" width="580" /> |
 
 #### Chat
-Conversational control plane for all workspace primitives — projects, tasks, workflows, documents, and profiles are all reachable from the chat surface. The chat interface is organized as a **tool catalog** with five categories (Explore, Create, Debug, Automate, Smart Picks) that help discover workspace capabilities. Progressive 5-tier context injection (~53K token budget) builds workspace awareness from lightweight summaries up to full document content. **@ mentions** let you reference documents and entities directly in prompts with fuzzy search autocomplete, injecting their content as context. **Slash commands** (`/`) provide quick access to tools and actions. Multi-provider model selection with cost tiers ($, $$, $$$) spans Claude Haiku through Opus and GPT-5.x models. Browser automation via Chrome DevTools and Playwright MCP enables screenshot capture and web interaction from chat. Quick Access navigation pills in responses provide entity deep-linking. `ainative-business` CRUD tools let you create, update, and delete workspace entities through natural language.
+Conversational control plane for all workspace primitives — projects, tasks, workflows, documents, and profiles are all reachable from the chat surface. The chat interface is organized as a **tool catalog** with five categories (Explore, Create, Debug, Automate, Smart Picks) that help discover workspace capabilities. Progressive 5-tier context injection (~53K token budget) builds workspace awareness from lightweight summaries up to full document content. **@ mentions** let you reference documents and entities directly in prompts with fuzzy search autocomplete, injecting their content as context. **Slash commands** (`/`) provide quick access to tools and actions. Multi-provider model selection with cost tiers ($, $$, $$$) spans Claude Haiku through Opus and GPT-5.x models. Browser automation via Chrome DevTools and Playwright MCP enables screenshot capture and web interaction from chat. Quick Access navigation pills in responses provide entity deep-linking. `orionfold-relay` CRUD tools let you create, update, and delete workspace entities through natural language.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/chat-conversation.png" alt="ainative-business chat conversation with @ document context" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/chat-conversation.png" alt="Orionfold Relay chat conversation with @ document context" width="1200" />
 
 | Tool Catalog | Skill Composition | @ Mentions |
 |:-:|:-:|:-:|
@@ -359,7 +359,7 @@ Structured `#key:value` filter grammar across chat, documents, and the `⌘K` pa
 #### Monitoring
 Real-time agent log streaming via Server-Sent Events. Filter by task or event type, click entries to jump to task details, and auto-pause polling when the tab is hidden (Page Visibility API).
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/monitor-list.png" alt="ainative-business monitoring dashboard" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/monitor-list.png" alt="Orionfold Relay monitoring dashboard" width="1200" />
 
 #### Content Handling
 File upload with drag-and-drop in task creation. Type-aware content preview for text, markdown (via react-markdown), code, and JSON. Copy-to-clipboard and download-as-file for task outputs.
@@ -367,14 +367,14 @@ File upload with drag-and-drop in task creation. Type-aware content preview for 
 #### Settings
 Configuration hub with provider-aware sections: Claude authentication (API key or OAuth), OpenAI Codex runtime API-key management, chat defaults (model selection), **browser tools** (Chrome DevTools and Playwright MCP toggles), runtime configuration (SDK timeout and max turns), tool permissions (saved "Always Allow" patterns with revoke), permission presets, budget guardrails, **database snapshots** (automatic backups with configurable retention and one-click restore), and data management.
 
-<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/settings-list.png" alt="ainative-business settings" width="1200" />
+<img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/settings-list.png" alt="Orionfold Relay settings" width="1200" />
 
 | Browser Tools | Permission Presets | Budget Configuration |
 |:-:|:-:|:-:|
 | <img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/settings-browser-tools.png" alt="Browser tools MCP toggles" width="380" /> | <img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/settings-presets.png" alt="Tool permission presets" width="380" /> | <img src="https://raw.githubusercontent.com/manavsehgal/ainative/main/public/readme/settings-budget.png" alt="Budget configuration" width="380" /> |
 
 #### CLI
-The `npx ainative-business` entry point boots a Next.js server from the published npm package. It is built from `bin/cli.ts` into `dist/cli.js` using tsup, and serves as the primary distribution channel — no clone required.
+The `npx orionfold-relay` entry point boots a Next.js server from the published npm package. It is built from `bin/cli.ts` into `dist/cli.js` using tsup, and serves as the primary distribution channel — no clone required.
 
 #### Database
 SQLite with WAL mode via better-sqlite3 + Drizzle ORM. <!-- STAT:dbTables -->43<!-- /STAT --> tables including core tables: `projects`, `tasks`, `workflows`, `agent_logs`, `notifications`, `documents`, `schedules`, `settings`, `learned_context`, `usage_ledger`, `conversations`, `chat_messages`, `environments`, `environment_configs`. Self-healing bootstrap — tables are created on startup if missing.

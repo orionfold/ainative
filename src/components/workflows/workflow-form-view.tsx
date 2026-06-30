@@ -1632,7 +1632,7 @@ export function WorkflowFormView({
                 <FormSectionCard
                   icon={GitBranch}
                   title="Research Branches"
-                  hint="Each branch runs independently before ainative unlocks the join step."
+                  hint="Each branch runs independently before Orionfold Relay unlocks the join step."
                 >
                   <div className="space-y-4">
                     {branchSteps.map((step, index) =>

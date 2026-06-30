@@ -237,7 +237,7 @@ export function ProjectFormSheet({
                   placeholder="/path/to/project (optional)"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Agent tasks will execute in this directory. Defaults to the ainative server directory if empty.
+                  Agent tasks will execute in this directory. Defaults to the Orionfold Relay server directory if empty.
                 </p>
               </div>
 

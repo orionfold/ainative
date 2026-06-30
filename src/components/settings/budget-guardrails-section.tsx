@@ -373,7 +373,7 @@ export function BudgetGuardrailsSection() {
             Cost &amp; Usage Guardrails
           </CardTitle>
           <CardDescription>
-            Set one monthly budget, let ainative derive daily pacing, and keep provider spend
+            Set one monthly budget, let Orionfold Relay derive daily pacing, and keep provider spend
             splits aligned with the runtimes you actually have configured.
           </CardDescription>
         </div>
@@ -454,7 +454,7 @@ export function BudgetGuardrailsSection() {
                     <SectionEyebrow icon={ArrowRight} label="Provider Allocation" />
                     <h3 className="mt-1 text-sm font-semibold">Split the monthly cap</h3>
                     <p className="text-xs text-muted-foreground">
-                      Adjust one slider. ainative writes the provider cap figures for you.
+                      Adjust one slider. Orionfold Relay writes the provider cap figures for you.
                     </p>
                   </div>
 

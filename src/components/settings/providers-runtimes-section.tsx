@@ -688,8 +688,8 @@ export function ProvidersAndRuntimesSection() {
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Task routing
               </p>
-              <p className="mt-1 truncate text-sm text-muted-foreground" title="Pick how ainative selects a runtime per task">
-                Pick how ainative picks a runtime.
+              <p className="mt-1 truncate text-sm text-muted-foreground" title="Pick how Orionfold Relay selects a runtime per task">
+                Pick how Orionfold Relay picks a runtime.
               </p>
             </div>
 

@@ -94,7 +94,7 @@ export function AuthConfigSection() {
           <div>
             <CardTitle>Authentication</CardTitle>
             <CardDescription>
-              Configure how ainative connects to the {runtime.label} runtime
+              Configure how Orionfold Relay connects to the {runtime.label} runtime
             </CardDescription>
           </div>
           <AuthStatusBadge connected={connected} apiKeySource={settings.apiKeySource} />

@@ -153,7 +153,7 @@ export function RuntimePreferenceModal({
       return {
         modelId: BALANCED_FALLBACK_MODEL,
         fallbackNote:
-          "No local models found — point ainative at your Ollama install in Settings. Using balanced default for now.",
+          "No local models found — point Orionfold Relay at your Ollama install in Settings. Using balanced default for now.",
       };
     }
     return {

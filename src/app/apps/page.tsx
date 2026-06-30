@@ -18,7 +18,7 @@ export default function AppsPage() {
   return (
     <PageShell
       title="Apps"
-      description="Composed instances built by describing what you want ainative to do."
+      description="Composed instances built by describing what you want Orionfold Relay to do."
     >
       {isEmpty ? (
         <EmptyHero starters={starters} />
@@ -76,7 +76,7 @@ export default function AppsPage() {
               <div>
                 <h2 className="text-sm font-medium">Start from a template</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Each template seeds the chat with a prompt. Edit, confirm, and ainative composes the app for you.
+                  Each template seeds the chat with a prompt. Edit, confirm, and Orionfold Relay composes the app for you.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -100,7 +100,7 @@ function EmptyHero({ starters }: { starters: ReturnType<typeof listStarters> }) 
           <Sparkles className="h-10 w-10 text-primary mb-4" aria-hidden="true" />
           <h2 className="text-lg font-semibold">Teach this instance a new job.</h2>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            Describe the thing you do every week. Ainative composes a profile, blueprint, schedule, and tables into a running app — no code, no deploys.
+            Describe the thing you do every week. Orionfold Relay composes a profile, blueprint, schedule, and tables into a running app — no code, no deploys.
           </p>
           <div className="mt-4 flex items-center gap-4">
             <Link
@@ -126,7 +126,7 @@ function EmptyHero({ starters }: { starters: ReturnType<typeof listStarters> }) 
           <div>
             <h2 className="text-sm font-medium">Starters</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Three worked examples ainative can compose for you. Click to seed the chat with a prompt.
+              Three worked examples Orionfold Relay can compose for you. Click to seed the chat with a prompt.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

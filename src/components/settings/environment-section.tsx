@@ -74,7 +74,7 @@ export function EnvironmentSection() {
           Environment
         </CardTitle>
         <CardDescription>
-          How ainative discovers and syncs skills from your environment into the
+          How Orionfold Relay discovers and syncs skills from your environment into the
           agent profile registry.
         </CardDescription>
       </CardHeader>

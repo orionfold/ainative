@@ -160,7 +160,7 @@ export function OpenAIChatGPTAuthControl({
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
         ChatGPT mode uses Codex App Server&apos;s browser sign-in flow and keeps the session
-        in ainative&apos;s isolated Codex home so it does not touch your normal `~/.codex` login.
+        in Orionfold Relay&apos;s isolated Codex home so it does not touch your normal `~/.codex` login.
       </p>
 
       {visibleAccount?.email && (

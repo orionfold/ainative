@@ -18,7 +18,7 @@ interface StatusChipProps {
 }
 
 /**
- * StatusChip — unified status rendering across all ainative surfaces.
+ * StatusChip — unified status rendering across all Orionfold Relay surfaces.
  *
  * Encodes 5 status families (lifecycle, governance, runtime, risk, schedule)
  * with consistent icon + color + text. Running/active states show a pulse indicator.

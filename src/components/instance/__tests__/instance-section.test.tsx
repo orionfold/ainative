@@ -110,7 +110,7 @@ describe("instance section", () => {
     // elements, so matchers must work around the split text nodes.
     expect(screen.getByText(/This folder has no/i)).toBeInTheDocument();
     expect(
-      screen.getByText("npx ainative-business@latest")
+      screen.getByText("npx orionfold-relay@latest")
     ).toBeInTheDocument();
     // Critical: the scary "setup incomplete" warning must NOT appear here.
     expect(

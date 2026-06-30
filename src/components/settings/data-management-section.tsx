@@ -66,7 +66,7 @@ export function DataManagementSection() {
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
           <CardDescription>
-            Reset or populate your ainative instance
+            Reset or populate your Orionfold Relay instance
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

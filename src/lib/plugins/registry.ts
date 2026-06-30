@@ -41,7 +41,7 @@ import type { ScheduleSpec } from "@/lib/validators/schedule-spec";
 //
 // Bump checklist (every chore(release) MAJOR or MINOR commit):
 //   1. When MINOR bumps (N → N+1): ADD the new MINOR string here.
-//   2. Drop a MINOR only when ainative-business is 2 MINORs ahead of it.
+//   2. Drop a MINOR only when orionfold-relay is 2 MINORs ahead of it.
 //   3. NEVER drop a MINOR in the same release that adds the next one.
 //
 // Self-enforcing: api-version-window.test.ts reads package.json and

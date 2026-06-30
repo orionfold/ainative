@@ -97,7 +97,7 @@ export function ChatEmptyState({
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
           <Bot className="h-6 w-6 text-primary" />
         </div>
-        <h2 className="text-lg font-semibold">Describe an app. Ainative builds it.</h2>
+        <h2 className="text-lg font-semibold">Describe an app. Orionfold Relay builds it.</h2>
         <p className="text-sm text-muted-foreground text-center max-w-md">
           Profiles, blueprints, tables, and schedules — composed from a single prompt.
           Or ask anything about your workspace.

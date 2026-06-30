@@ -106,7 +106,7 @@ export function WorkspaceIndicator({ variant }: WorkspaceIndicatorProps) {
           )}
           {data.dataDirMismatch && fixState === "done" && (
             <span className="text-[10px] text-green-600">
-              → {fixResult} · Ctrl-C, then re-run npx ainative-business
+              → {fixResult} · Ctrl-C, then re-run npx orionfold-relay
             </span>
           )}
           {data.dataDirMismatch && fixState === "error" && (

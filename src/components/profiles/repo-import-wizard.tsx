@@ -351,7 +351,7 @@ export function RepoImportWizard({
                   }}
                 />
                 <p className="text-xs text-muted-foreground">
-                  ainative will scan for all directories containing SKILL.md files.
+                  Orionfold Relay will scan for all directories containing SKILL.md files.
                 </p>
               </div>
             </div>
@@ -400,7 +400,7 @@ export function RepoImportWizard({
                           variant={skill.format === "ainative" ? "default" : "secondary"}
                           className="text-[10px] px-1.5 py-0"
                         >
-                          {skill.format === "ainative" ? "ainative" : "SKILL.md"}
+                          {skill.format === "ainative" ? "Relay" : "SKILL.md"}
                         </Badge>
                       </div>
                       {skill.description && (

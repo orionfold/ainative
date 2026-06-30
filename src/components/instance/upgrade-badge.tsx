@@ -198,7 +198,7 @@ export function UpgradeBadge() {
             </div>
 
             <p className="text-sm text-muted-foreground leading-relaxed">
-              ainative will stash any uncommitted work, merge <code className="font-mono">main</code> into{" "}
+              Orionfold Relay will stash any uncommitted work, merge <code className="font-mono">main</code> into{" "}
               <code className="font-mono">{config.config?.branchName ?? "your branch"}</code>, install any new
               dependencies, and ask you to resolve conflicts if any appear.
             </p>
