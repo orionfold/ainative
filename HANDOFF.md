@@ -12,7 +12,8 @@ origin, local-only per `feedback-no-push-reminders-pre-release`):
 ## ▶▶ FOLDER RENAME IS SAFE — operator's remaining manual steps
 CC confirmed safe. The code is done; these are the **operator-manual** steps (strategy b has no
 auto-migration):
-1. **Stop the `:3000` dev server** first.
+1. ✅ **DONE (CC, this session):** `:3000` dev server stopped, no `next`/`next-server` processes,
+   `~/.ainative/ainative.db` has no open lock — safe to `mv` the data dir.
 2. **`.env.local`** (CC is permission-blocked from reading/editing it): currently only `RELAY_DEV_MODE`
    is renamed. Also rename any `AINATIVE_DATA_DIR` → `RELAY_DATA_DIR` if present (operator said it has
    **no** DATA_DIR override → the app uses the default `~/.relay`).
