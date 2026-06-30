@@ -1,0 +1,22 @@
+{
+  "focus": "Licensing + fulfilment (free engine + paid pack-unlock, mirror Proof) — verifier build unblocked",
+  "blockers": [
+    "Operator: lock SKU naming + founding/standard/renewal pricing (not code-blocking)",
+    "Operator/Stripe: create 3 live license_orionfold_relay* prices before any sale"
+  ],
+  "next": [
+    "LICENSING FIRST (before npm publish): port canonicalization_js, reproduce all 4 conformance cases",
+    "Build embedded-pubkey Ed25519 verifier (3-step gate: verify→term→entitlement); add entitlement field to PackManifestSchema",
+    "Gate `relay pack add <premium>` at the verb; request OF-RELAY-2026 license; prove prod path e2e",
+    "THEN publish real orionfold-relay@0.x (currently 0.0.1 reservation stub; local 0.15.0)",
+    "Deprecate legacy ainative-business@0.14.3 -> point to orionfold-relay (do NOT unpublish)"
+  ],
+  "recent": [
+    "Both peers replied (Website later 4 + Proof later 5) — licensing build UNBLOCKED both sides",
+    "Proof shipped a committed conformance vector (Node/TS canonicalizer + 4 signed cases) = the verifier acceptance test",
+    "Proof corrections: verify-then-parse ordering; 3-step gate (verify→term→entitlement), not is_active()",
+    "Website confirmed product:orionfold-relay branch feasible; same prod key signs Relay",
+    "Pushed strategy repo 633dd70 (relays + finalize ainative→relay rename) — operator OK'd one-off"
+  ],
+  "metrics": {}
+}
