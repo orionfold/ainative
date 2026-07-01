@@ -1,18 +1,17 @@
 {
-  "focus": "Licensing/fulfilment CLOSED — real prod license verified end-to-end under shipped orionfold-relay@0.15.0; prod path proven",
+  "focus": "orionfold-relay@0.15.1 PUBLISHED via tokenless OIDC Trusted Publishing (with provenance); npm 2FA friction is now permanently solved",
   "blockers": [],
   "next": [
-    "Deprecate legacy ainative-business -> point to orionfold-relay (needs fresh npm auth; publish token was revoked)",
-    "Add free-vs-paid boundary section to README (page+package agree; README predates licensing)",
-    "Consider GitHub Actions Trusted Publishing (OIDC) to kill the npm 2FA publish friction",
-    "Delete merged feat/licensing-verifier branch (== main now)"
+    "Deprecate legacy ainative-business -> point to orionfold-relay (still needs its own npm auth; not covered by the relay OIDC)",
+    "Optional: npm Publishing access -> 'require 2FA + disallow tokens' now that OIDC works, to lock the token path off",
+    "Add free-vs-paid boundary section to README (page+package agree; README predates licensing)"
   ],
   "recent": [
-    "MERGED feat/licensing-verifier -> main + PUSHED (144211db..6d7cb351); origin/main has verifier + real-license test + dark screengrabs",
-    "Shipped 8 dark-theme Relay-branded /relay/ screengrabs (72d09016); all 8 README raw URLs now HTTP 200 (customers-* were 404ing)",
-    "Removed README About-author section (stale AWS-employer disclaimer; operator left AWS) per Website later 15; answered later 14+15 -> later 16",
-    "REAL website-signed license OF-RELAY-VERIFY-20260701 VERIFIED green under shipped verifier; 36/36 tests, fixture pinned",
-    "Fixed customers-detail honesty gap: seeded demo + linked projects -> real $0.05/6-run attribution, not $0.00"
+    "orionfold-relay@0.15.1 PUBLISHED via GitHub Actions OIDC Trusted Publishing — zero tokens/OTP, provenance auto-generated; first tokenless release",
+    "Built OIDC publish pipeline (.github/workflows/publish.yml on v* tag) + docs/RELEASING.md; fixed stale package.json repo URL (ainative->relay)",
+    "MERGED feat/licensing-verifier -> main + PUSHED; origin/main has verifier + real-license test + dark screengrabs",
+    "Shipped 8 dark-theme Relay-branded /relay/ screengrabs; all 8 README raw URLs now HTTP 200 (customers-* were 404ing)",
+    "Removed README About-author section (stale AWS disclaimer; operator left AWS) per Website later 15; answered later 14+15 -> later 16"
   ],
   "metrics": {}
 }
