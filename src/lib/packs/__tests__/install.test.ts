@@ -268,4 +268,72 @@ describe("installPack", () => {
       PackValidationError
     );
   });
+
+  it("refuses a premium pack with no license, before any write", async () => {
+    buildFixturePack();
+    // Mark the fixture pack premium.
+    fs.writeFileSync(
+      path.join(packDir, "pack.yaml"),
+      yaml.dump({
+        id: "test-agency",
+        version: "0.1.0",
+        name: "Test Agency",
+        relayCore: ">=0.15.0",
+        entitlement: "product:orionfold-relay",
+        customers: ["acme-co", "globex"],
+      })
+    );
+    const { installPack, db, projects } = await loadModules();
+    const { PackLicenseError } = await import("@/lib/licensing/gate");
+
+    await expect(installPack(packDir, installOpts())).rejects.toThrow(
+      PackLicenseError
+    );
+
+    // No partial install — the project was never created.
+    const proj = await db
+      .select()
+      .from(projects)
+      .where((await import("drizzle-orm")).eq(projects.id, "test-agency"))
+      .get();
+    expect(proj).toBeUndefined();
+  });
+
+  it("refuses a premium pack when the license lacks the entitlement", async () => {
+    buildFixturePack();
+    fs.writeFileSync(
+      path.join(packDir, "pack.yaml"),
+      yaml.dump({
+        id: "test-agency",
+        version: "0.1.0",
+        name: "Test Agency",
+        relayCore: ">=0.15.0",
+        entitlement: "product:orionfold-relay",
+        customers: ["acme-co", "globex"],
+      })
+    );
+    // A structurally-valid but untrusted/forged license file.
+    const licPath = path.join(packDir, "fake.license.json");
+    fs.writeFileSync(
+      licPath,
+      JSON.stringify({
+        payload: {
+          issued_at: "2026-06-14T00:00:00Z",
+          expires_at: "2027-06-14T00:00:00Z",
+          entitlements: ["product:orionfold-relay"],
+        },
+        signature: {
+          alg: "ed25519",
+          key_id: "of-license-prod-2026",
+          value: "AA==",
+        },
+      })
+    );
+    const { installPack } = await loadModules();
+    const { PackLicenseError } = await import("@/lib/licensing/gate");
+
+    await expect(
+      installPack(packDir, { ...installOpts(), licenseUrl: licPath })
+    ).rejects.toThrow(PackLicenseError);
+  });
 });

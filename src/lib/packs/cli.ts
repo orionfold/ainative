@@ -25,23 +25,49 @@ export interface PackCommandIo {
 }
 
 const USAGE = [
-  "Usage: ainative pack <action>",
-  "  add <path|git-url>   install a pack",
+  "Usage: relay pack <action>",
+  "  add <path|git-url> [--license-url=<path|url>]   install a pack",
   "  list                 list installed packs",
   "  remove <id>          uninstall a pack",
   "  update <id>          (v1 stub — editable-seed; edit in place)",
 ].join("\n");
+
+/**
+ * Pull a `--flag=value` (or `--flag value`) out of argv, returning its value
+ * and the remaining positional args. Kept tiny + local — the pack CLI has one
+ * flag; a flag library would be premature (Principle #6).
+ */
+function extractFlag(
+  argv: string[],
+  name: string
+): { value?: string; rest: string[] } {
+  const rest: string[] = [];
+  let value: string | undefined;
+  for (let i = 0; i < argv.length; i++) {
+    const tok = argv[i];
+    if (tok === `--${name}`) {
+      value = argv[i + 1];
+      i++; // consume the value token
+    } else if (tok.startsWith(`--${name}=`)) {
+      value = tok.slice(`--${name}=`.length);
+    } else {
+      rest.push(tok);
+    }
+  }
+  return { value, rest };
+}
 
 export async function runPackCommand(
   argv: string[],
   io: PackCommandIo
 ): Promise<number> {
   const action = argv[0];
-  const arg = argv[1];
+  const { value: licenseUrl, rest } = extractFlag(argv.slice(1), "license-url");
+  const arg = rest[0];
 
   switch (action) {
     case "add":
-      return runAdd(arg, io);
+      return runAdd(arg, licenseUrl, io);
     case "list":
       return runList(io);
     case "remove":
@@ -57,10 +83,11 @@ export async function runPackCommand(
 
 async function runAdd(
   source: string | undefined,
+  licenseUrl: string | undefined,
   io: PackCommandIo
 ): Promise<number> {
   if (!source) {
-    io.error("Missing pack path. Usage: ainative pack add <path|git-url>");
+    io.error("Missing pack path. Usage: relay pack add <path|git-url>");
     return 1;
   }
   try {
@@ -69,6 +96,7 @@ async function runAdd(
       appsDir: io.appsDir,
       profilesDir: io.profilesDir,
       blueprintsDir: io.blueprintsDir,
+      licenseUrl,
     });
     io.log(
       `Installed ${report.packId}@${report.packVersion}: ` +
@@ -113,7 +141,7 @@ async function runRemove(
   io: PackCommandIo
 ): Promise<number> {
   if (!id) {
-    io.error("Missing pack id. Usage: ainative pack remove <id>");
+    io.error("Missing pack id. Usage: relay pack remove <id>");
     return 1;
   }
   try {

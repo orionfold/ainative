@@ -53,6 +53,26 @@ function buildFixturePack(id = "cli-pack"): void {
   );
 }
 
+function buildPremiumFixturePack(id = "cli-premium"): void {
+  fs.writeFileSync(
+    path.join(packDir, "pack.yaml"),
+    yaml.dump({
+      id,
+      version: "0.1.0",
+      name: "CLI Premium Pack",
+      relayCore: ">=0.15.0",
+      entitlement: "product:orionfold-relay",
+      customers: [],
+    })
+  );
+  const baseDir = path.join(packDir, "base");
+  fs.mkdirSync(baseDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(baseDir, "manifest.yaml"),
+    yaml.dump({ id, version: "0.1.0", name: "CLI Premium Pack", profiles: [], blueprints: [], tables: [], schedules: [] })
+  );
+}
+
 async function load() {
   return import("../cli");
 }
@@ -116,5 +136,44 @@ describe("runPackCommand", () => {
     const code = await runPackCommand(["add", packDir], io());
     expect(code).toBe(1);
     expect(errs.join("\n").toLowerCase()).toMatch(/pack/);
+  });
+
+  it("add: a premium pack without --license-url is refused with a license hint", async () => {
+    buildPremiumFixturePack();
+    const { runPackCommand } = await load();
+    const code = await runPackCommand(["add", packDir], io());
+    expect(code).toBe(1);
+    expect(errs.join("\n").toLowerCase()).toMatch(/license/);
+  });
+
+  it("add: parses --license-url and threads it to the gate", async () => {
+    buildPremiumFixturePack();
+    // A structurally-valid but forged license → gate refuses, but the flag
+    // must have been parsed (otherwise we'd get the 'missing license' hint).
+    const licPath = path.join(packDir, "fake.license.json");
+    fs.writeFileSync(
+      licPath,
+      JSON.stringify({
+        payload: {
+          issued_at: "2026-06-14T00:00:00Z",
+          expires_at: "2027-06-14T00:00:00Z",
+          entitlements: ["product:orionfold-relay"],
+        },
+        signature: {
+          alg: "ed25519",
+          key_id: "of-license-prod-2026",
+          value: "AA==",
+        },
+      })
+    );
+    const { runPackCommand } = await load();
+    const code = await runPackCommand(
+      ["add", packDir, `--license-url=${licPath}`],
+      io()
+    );
+    expect(code).toBe(1);
+    // Forged-signature refusal, NOT the "re-run with --license-url" missing hint.
+    expect(errs.join("\n").toLowerCase()).not.toMatch(/re-run with --license-url/);
+    expect(errs.join("\n").toLowerCase()).toMatch(/license/);
   });
 });

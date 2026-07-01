@@ -36,6 +36,13 @@ export const PackManifestSchema = z
     description: z.string().optional(),
     /** Relay-core compat range, e.g. ">=0.15.0". Checked at install time. */
     relayCore: z.string().optional(),
+    /**
+     * Premium gate. When set, `relay pack add` requires a verified license
+     * whose entitlements include this exact string (e.g.
+     * "product:orionfold-relay"). Absent ⇒ a free pack with no license gate.
+     * The string is the unit of entitlement, version- and pack-id-agnostic.
+     */
+    entitlement: z.string().min(1).optional(),
     /** Customer slugs seeded via ensureCustomer at install. */
     customers: z.array(z.string()).default([]),
   })

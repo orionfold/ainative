@@ -105,6 +105,30 @@ describe("PackManifestSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("accepts an optional entitlement string (premium pack)", () => {
+    const result = PackManifestSchema.safeParse({
+      ...VALID_PACK_YAML,
+      entitlement: "product:orionfold-relay",
+    });
+    expect(result.success).toBe(true);
+    if (result.success)
+      expect(result.data.entitlement).toBe("product:orionfold-relay");
+  });
+
+  it("leaves entitlement undefined when omitted (free pack)", () => {
+    const result = PackManifestSchema.safeParse(VALID_PACK_YAML);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.entitlement).toBeUndefined();
+  });
+
+  it("rejects a non-string entitlement", () => {
+    const result = PackManifestSchema.safeParse({
+      ...VALID_PACK_YAML,
+      entitlement: ["product:orionfold-relay"],
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 // ── parsePack ────────────────────────────────────────────────────────

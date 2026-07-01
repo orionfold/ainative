@@ -1,0 +1,97 @@
+{
+  "algorithm": "ed25519",
+  "canonicalization_js": "function canonicalize(v){if(Array.isArray(v))return '['+v.map(canonicalize).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonicalize(v[k])).join(',')+'}';return JSON.stringify(v);} const bytes=new TextEncoder().encode(canonicalize(payload));",
+  "canonicalization_py": "json.dumps(payload, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False).encode(\"utf-8\")",
+  "case_count": 4,
+  "cases": [
+    {
+      "canonical_sha256_12": "babccc480790",
+      "canonical_utf8": "{\"a\":{\"x\":1,\"y\":2},\"b\":1}",
+      "name": "nested-key-sort",
+      "payload": {
+        "a": {
+          "x": 1,
+          "y": 2
+        },
+        "b": 1
+      },
+      "signature_b64": "o6cw9jhctDmMfI8bRK+JhKfHZQjDrdRK9BP5INBzdPqXl4SrXRAwBlh/TJPEzyHd3VvdW0269usLn6xCpDhzDQ==",
+      "stresses": "recursive key sort at every object level + compact separators (no whitespace)"
+    },
+    {
+      "canonical_sha256_12": "168563e2b0f7",
+      "canonical_utf8": "{\"city\":\"東京\",\"note\":\"café — naïve\",\"org\":\"Acmé Robotics 🤖\"}",
+      "name": "unicode-utf8",
+      "payload": {
+        "city": "東京",
+        "note": "café — naïve",
+        "org": "Acmé Robotics 🤖"
+      },
+      "signature_b64": "LOMCnIguhP4ft0WmHml1Y0gxHGn5uMfh8OXdc1XmiW1d9npH8GwLR/qkCmZpKpd3bWumjrnFCr3rM6vfYDgtAQ==",
+      "stresses": "ensure_ascii=False / UTF-8 multibyte — accents, em dash, emoji, CJK must encode raw"
+    },
+    {
+      "canonical_sha256_12": "57126b9332d8",
+      "canonical_utf8": "{\"count\":1000000,\"empty\":null,\"flag\":true,\"off\":false,\"seats\":1,\"zero\":0}",
+      "name": "scalars-no-floats",
+      "payload": {
+        "count": 1000000,
+        "empty": null,
+        "flag": true,
+        "off": false,
+        "seats": 1,
+        "zero": 0
+      },
+      "signature_b64": "6tyOaOZkLA3b31Q+p+UD/OTZtMVfRjSLk5EYN5B0kRajcuf6Fk3qpENd8YkwS5WAdEBR84+R2W1CFdYxSWiuBQ==",
+      "stresses": "integer/bool/null formatting (1 not 1.0, true/false, null) — NO floats anywhere"
+    },
+    {
+      "canonical_sha256_12": "cc859cd83d06",
+      "canonical_utf8": "{\"edition\":\"founding-25\",\"entitlements\":[\"proven-matrix-images\",\"signed-update-channel\"],\"expires_at\":\"2027-06-14T00:00:00Z\",\"issued_at\":\"2026-06-14T00:00:00Z\",\"issued_to\":{\"email\":\"jose@example.com\",\"name\":\"José Núñez\",\"org\":\"Société Générale Robotique\"},\"license_id\":\"OF-FE-2026-0099\",\"not_before\":\"2026-06-14T00:00:00Z\",\"product\":\"arena-field-edition\",\"provenance\":{\"stripe_price_id\":\"price_founding25\",\"stripe_purchase_id\":\"pi_EXAMPLE0099\"},\"schema\":\"orionfold.license/v1\",\"seats\":1,\"tier\":\"field-edition\"}",
+      "name": "full-license-founding25",
+      "payload": {
+        "edition": "founding-25",
+        "entitlements": [
+          "proven-matrix-images",
+          "signed-update-channel"
+        ],
+        "expires_at": "2027-06-14T00:00:00Z",
+        "issued_at": "2026-06-14T00:00:00Z",
+        "issued_to": {
+          "email": "jose@example.com",
+          "name": "José Núñez",
+          "org": "Société Générale Robotique"
+        },
+        "license_id": "OF-FE-2026-0099",
+        "not_before": "2026-06-14T00:00:00Z",
+        "product": "arena-field-edition",
+        "provenance": {
+          "stripe_price_id": "price_founding25",
+          "stripe_purchase_id": "pi_EXAMPLE0099"
+        },
+        "schema": "orionfold.license/v1",
+        "seats": 1,
+        "tier": "field-edition"
+      },
+      "signature_b64": "VUjkBCuPLGwyBNTcqU1jHV/5ZSYB4JIOMkTmQQJHVK0NgU7NEtdnU53YkutoasdwIrztttVWovBPmbehd5QHAw==",
+      "stresses": "a realistic CURRENT v1 license payload (keys unsorted in source) incl. a unicode org + provenance — token-less per OPEN-1 (no registry/pull_token)"
+    }
+  ],
+  "dev_key": {
+    "key_id": "of-license-dev-2026-06",
+    "note": "throwaway dev key (seed = bytes(range(32))); NEVER signs a real license",
+    "private_seed_b64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "public_key_b64": "A6EHv/POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg="
+  },
+  "name": "license-conformance",
+  "purpose": "Shared canonicalization + Ed25519 signing conformance vector for the orionfold.license/v1 contract. The Python verifier (fieldkit.field_edition.license) and the JS issuer (fulfillLicense) MUST both reproduce every canonical_utf8 / canonical_sha256_12 / signature_b64 below. See _SPECS/arena-field-edition-license-workflow-v1.md §6.",
+  "rules": [
+    "sort object keys at EVERY level (recursive)",
+    "no inter-token whitespace (compact)",
+    "UTF-8, emit non-ASCII raw (ensure_ascii=False)",
+    "no floats anywhere (ints/bool/null/string/list/object only)",
+    "signature_b64 = standard base64 (padded) of the 64-byte Ed25519 signature"
+  ],
+  "schema": "orionfold.license/v1",
+  "version": "v1"
+}

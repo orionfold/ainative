@@ -45,6 +45,12 @@ export interface InstallPackOptions {
   blueprintsDir?: string;
   /** Override the detected relay-core version (tests). */
   coreVersion?: string;
+  /**
+   * Path or URL to a `{ payload, signature }` license envelope. Required for a
+   * premium pack (one whose pack.yaml declares an `entitlement`); ignored for a
+   * free pack. Sourced from the buyer's fulfilment email (`--license-url`).
+   */
+  licenseUrl?: string;
 }
 
 export interface InstallReport {
@@ -102,6 +108,20 @@ export async function installPack(
             `but this install is ${coreVersion}.`
         );
       }
+    }
+
+    // 2b. License gate — a premium pack (declares `entitlement`) requires a
+    // verified license BEFORE any write. Free packs skip this entirely. The
+    // licensing modules are dynamically imported (kept out of the CLI's static
+    // graph, consistent with TDR-032) and run 100% offline.
+    if (pack.meta.entitlement) {
+      const { assertEntitled } = await import("@/lib/licensing/gate");
+      const license = options.licenseUrl
+        ? await (await import("@/lib/licensing/load")).loadLicense(
+            options.licenseUrl
+          )
+        : undefined;
+      assertEntitled(pack.meta.entitlement, license);
     }
 
     const resolved = resolvePackLayer(pack);
