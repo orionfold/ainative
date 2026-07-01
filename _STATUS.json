@@ -1,19 +1,19 @@
 {
-  "focus": "Shipped 3 of 4 P0 ICP-walkthrough fixes (customer-link UI, chat MCP namespace + migration, pack core-version); next: fix-compose-approval-orchestration (now unblocked)",
+  "focus": "Shipped orionfold-relay@0.15.5 (customer triage + bundle: #13/#9/#4 fixed+closed). Next: retest 0.15.5 in customer's Alpine-VM→Windows topology, then repro remaining held issues (#5/#6/#11/#12 — 3 had no source defect on localhost).",
   "blockers": [],
   "next": [
-    "fix-compose-approval-orchestration (P0, NOW UNBLOCKED by 1fa0cfba): rework compose tool loop — dup create_project, next-gate auto-surface, parallel-tool tangle (smoke budget)",
-    "P1s: workflow-model-preference-propagation, dashboard-budget-vs-cost-labeling, pack-install-discoverability, chat-spend-metering-diagnose",
-    "fix-inbox-checkpoint-realtime (P2)",
-    "rm -rf ~/.relay-isolated (6.4M throwaway)",
-    "Verify fix-compose spec vs tree — may carry stale agent_profiles assumption"
+    "Await customer retest of 0.15.5 (asked on #13) — cross-origin fix may already resolve #5/#6/#11/#12 in their Alpine-VM→Windows LAN setup",
+    "If held issues persist: repro in cross-machine topology (not localhost); check #10 prod-build (next start) as the class fix",
+    "ICP smoke backlog (NOT started): workflow-model-prefs, dashboard-labeling, pack-install, chat-spend-metering, inbox-checkpoint (P2)",
+    "Commit 5 untracked features/fix-*.md ICP specs",
+    "Pre-existing test failures (router/api-version-window) — separate triage, not regressions"
   ],
   "recent": [
-    "cdf66e94 feat(projects): customer selector on ProjectFormSheet — DB round-trip + browser verified",
-    "1fa0cfba fix(chat): MCP server key ainative→relay + settings.permissions.allow migration — DB + browser smoke",
-    "a61f8ad0 fix(packs): pack core-version 0.0.0→real via tsup define + bundle-aware getAppRoot — npx smoke passed",
-    "Discovered profiles are file-based (no agent_profiles table) — saved as memory; corrects a groomed spec",
-    "Prior: ICP backlog verified + groomed into 9 fix-* specs"
+    "0.15.5 released: 55ab07a0 #13 LAN cross-origin · 23845a97 #9 providers-error + #4 4K-scaling · bf204c24 env-var copy",
+    "Customer topology: npx in Alpine VM → --hostname 0.0.0.0 → accessed from Windows over LAN (cross-origin) — likely shared cause of held cluster",
+    "Triage of 6 customer issues: only #4/#9 confirmable quick fixes; #5/#6/#11/#12 held (no source defect on localhost)",
+    "Browser-verified 0.15.5: 3840px→18px root font, forced-500 → providers error card + Retry (not spinner)",
+    "Pre-existing test failures proven identical at pre-session b0c1dae6 (zero regressions from 0.15.5)"
   ],
   "metrics": {}
 }
