@@ -187,7 +187,7 @@ export function InstanceSection() {
           Running on the main dev repo. Instance upgrade features are disabled.
           Set{" "}
           <code className="font-mono text-[11px] px-1 py-0.5 rounded bg-muted">
-            AINATIVE_INSTANCE_MODE=true
+            RELAY_INSTANCE_MODE=true
           </code>{" "}
           to test.
         </p>
