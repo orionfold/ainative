@@ -4,6 +4,12 @@
 
 This project was formerly published as `stagent` on npm and hosted at `github.com/manavsehgal/stagent`. As of 2026-04-17 it is `ainative`. The old GitHub URL redirects permanently; `stagent` on npm is deprecated with an upgrade pointer to `ainative`.
 
+## [0.15.5] — 2026-07-01
+
+### Fixed
+
+- **LAN access no longer blocked by a cross-origin error** ([#13](https://github.com/orionfold/relay/issues/13)) — after binding to the network with `--hostname 0.0.0.0`, opening Relay from another machine failed with "Blocked cross-origin request to Next.js dev resource" and a broken UI. When you opt into LAN binding, Relay now trusts private-network (RFC1918) origins so the app loads normally from other machines on your LAN. Public origins remain blocked. (A future release will ship a production build for `npx`, which removes this dev-mode restriction entirely.)
+
 ## [0.15.4] — 2026-07-01
 
 ### Fixed

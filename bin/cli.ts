@@ -365,6 +365,12 @@ async function main() {
       RELAY_LAUNCH_CWD: launchCwd,
       PORT: String(actualPort),
       ...(opts.safeMode ? { RELAY_SAFE_MODE: "true" } : {}),
+      // In dev mode, Next blocks cross-origin /_next/* dev-asset requests from
+      // the LAN client's IP, breaking the app over the network (issue #13).
+      // When the operator has opted into non-loopback binding, tell next.config
+      // to allow any dev origin. Mirrors the same trust decision as the warning
+      // above; harmless for the prebuilt `next start` path (no dev-origin gate).
+      ...(isNonLoopbackHost(bindHost) ? { RELAY_ALLOW_LAN_ORIGINS: "true" } : {}),
     },
   });
 
