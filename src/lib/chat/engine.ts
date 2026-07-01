@@ -672,9 +672,32 @@ export async function* sendMessage(
     const pendingScreenshotTools = new Set<string>(); // tool_use IDs for screenshot tools
     const screenshotAttachments: ScreenshotAttachment[] = [];
 
-    for await (const raw of response as AsyncIterable<
-      Record<string, unknown>
-    >) {
+    // Race the SDK iterator against the permission side-channel.
+    //
+    // The Agent SDK's canUseTool callback pauses the SDK indefinitely while a
+    // permission gate is pending (see docs: "Execution remains paused until
+    // your callback returns"). During that pause the SDK emits NO events, so a
+    // plain `for await` over the iterator parks — and any UI event a *second*
+    // concurrent gate pushes onto the side-channel would sit undrained until
+    // the 120s auto-deny fired. That was the "silent second gate" deadlock:
+    // the loop's only driver (SDK events) is exactly what the pending gate
+    // stalls.
+    //
+    // Instead we drive the iterator manually and race each `.next()` against a
+    // blocking `sideChannel.pull()`. When a side-channel event wins (a gate
+    // surfacing while the SDK is paused), we yield it immediately and loop
+    // again WITHOUT re-issuing `.next()` — the outstanding SDK promise is kept
+    // in `sdkNext` and only replaced once it resolves, so we never call
+    // `.next()` twice concurrently. This mirrors the codex-engine wake-signal
+    // loop, which never had this bug.
+    const sdkIterator = (response as AsyncIterable<Record<string, unknown>>)[
+      Symbol.asyncIterator
+    ]();
+    let sdkNext: Promise<IteratorResult<Record<string, unknown>>> | null =
+      sdkIterator.next();
+    let sdkDone = false;
+
+    while (!sdkDone) {
       if (signal?.aborted) break;
 
       // Signal that the model has connected and is processing
@@ -683,7 +706,35 @@ export async function* sendMessage(
         yield { type: "status", phase: "generating", message: "Generating response..." };
       }
 
-      // Drain any side-channel events (from canUseTool) before processing SDK event
+      // Race: whichever of the SDK event or a side-channel push resolves first.
+      // The SDK promise is persistent (never re-issued while pending); the pull
+      // is recreated each turn and resolves with `undefined` on channel close.
+      const winner = await Promise.race([
+        sdkNext.then((res) => ({ kind: "sdk" as const, res })),
+        sideChannel
+          .pull()
+          .then((event) => ({ kind: "side-channel" as const, event })),
+      ]);
+
+      // Side-channel won: the SDK is (likely) paused on a gate. Surface the
+      // event now and loop again — `sdkNext` stays pending, unresolved.
+      if (winner.kind === "side-channel") {
+        // `undefined` means the channel closed (turn ending); ignore it.
+        if (winner.event) yield winner.event;
+        continue;
+      }
+
+      // SDK event won: consume it and re-arm the iterator for the next turn.
+      const { res } = winner;
+      sdkNext = null;
+      if (res.done) {
+        sdkDone = true;
+        break;
+      }
+      const raw = res.value;
+      sdkNext = sdkIterator.next();
+
+      // Drain any side-channel events buffered alongside this SDK event.
       for (const sideEvent of sideChannel.drain()) {
         yield sideEvent;
       }

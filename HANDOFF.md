@@ -1,24 +1,16 @@
 # Relay — HANDOFF
 
-_Last updated: 2026-07-01 (pt: customer issue #1 WSL crash fixed + published 0.15.2; `--hostname`
-feature shipped 0.15.3; compose P0 defect #3 (dup-project dedup) landed on main; release-notes CI
-automation + public feature-issue conventions established. See git 17ae4002/2dcdeb13/e32562a3/7c1eb566.)_
+_Last updated: 2026-07-01 (pt: compose P0 CLOSED — live smoke proved full 5-artifact compose completes
+end-to-end, no stall/dup; defects #1/#2 were downstream of namespace fix `1fa0cfba` and already resolved;
+shipped canUseTool/SSE race-loop hardening + bumped 0.15.4. Prior: issue #1 WSL fix (0.15.2), `--hostname`
+(0.15.3), dedup #3 (`e32562a3`), release-notes CI. See git 17ae4002/2dcdeb13/e32562a3/7c1eb566.)_
 
-## ▶️ NEXT SESSION (1) — finish the compose P0 (`fix-compose-approval-orchestration`)
-Defect #3 of 3 is DONE + on main (dup-project dedup, `e32562a3`). Two defects remain — both need a
-**live `npm run dev` compose repro** to root-cause honestly (systematic-debugging Phase 1), and both
-touch `src/lib/chat/engine.ts` → **runtime-registry smoke budget applies** (CLAUDE.md):
-1. **Defect #1 — silent gate:** after an inline Allow-Once resolves, the next permission gate doesn't
-   auto-surface (60s silent wait; typing "continue" un-sticks it). Traced to the `canUseTool` →
-   side-channel → SSE-bridge → UI resolution path (`engine.ts:520` gates block on
-   `createPendingRequest` at `:663`). Not yet fully root-caused — needs the live repro.
-2. **Defect #2 — stacked/looping gates:** approvals don't advance the plan; gates stack out of order
-   during parallel tool calls, narration mismatches the gated tool. Hypothesis: parallel-tool
-   emergent. Needs the repro to confirm.
-Then cut ONE release covering all three defects (auto-Release + flip issue #3 → `shipped`).
-Spec: `features/fix-compose-approval-orchestration.md` (verified accurate, NO stale `agent_profiles`).
+## ▶️ NEXT SESSION (1) — remaining ICP user-journey smoke fixes (leverage order; `roadmap.md` → "ICP Walkthrough Fixes")
 
-## Then (2) — remaining ICP user-journey smoke fixes (leverage order; `roadmap.md` → "ICP Walkthrough Fixes")
+_Compose P0 is CLOSED — see "Recently shipped" + `features/fix-compose-approval-orchestration.md`
+(status: shipped) for the root-cause reframe. Release 0.15.4 covers dedup #3 + the gate-bridge hardening;
+**tag `v0.15.4` to trigger the auto-Release, then flip issue #3 → `shipped`.**_
+
 - **P1s:** `fix-workflow-model-preference-propagation` (smoke budget), `fix-dashboard-budget-vs-cost-labeling`,
   `fix-pack-install-discoverability` (dep done), `fix-chat-spend-metering-diagnose` (repro 0-rows; code exists).
 - **P2:** `fix-inbox-checkpoint-realtime`.
@@ -69,8 +61,11 @@ Hot fixes (crash/broken-for-customer) can jump the queue ahead of the ICP backlo
 - **Smoke-test budget** (CLAUDE.md): runtime-registry-adjacent import changes need a real `npm run dev` smoke.
 
 ## Recently shipped (durable in git + memory)
-- This session: issue #1 WSL/UNC crash fix (`17ae4002`, published 0.15.2, issue closed) · `--hostname`
-  LAN-access feature (`2dcdeb13`, published 0.15.3, issue #2 pinned) · compose dedup defect #3
-  (`e32562a3`, on main, unreleased) · release-notes CI + feature-issue conventions (`7c1eb566`).
-- Prior: 3 P0 ICP fixes (`cdf66e94`/`1fa0cfba`/`a61f8ad0`); ICP backlog groomed → `fix-*` specs; `0.15.1`
-  via OIDC. Full detail: git + `_IDEAS/backlog.md` + memory `licensing-fulfilment-workstream`.
+- This session: **compose P0 CLOSED** — canUseTool/SSE race-loop hardening (`engine.ts` Promise.race SDK
+  iterator vs `AsyncQueue.pull()`; +5 unit tests) + live 5-artifact compose smoke (no stall/dup, DB-verified);
+  bumped **0.15.4** (dedup #3 + hardening). Key finding: defects #1/#2 were downstream of namespace fix
+  `1fa0cfba` and already resolved — the `mcp__relay__*` allow-glob auto-approves compose tools before
+  `canUseTool`, so gates no longer fire; the race fix is defense-in-depth for tools that DO gate.
+- Prior: issue #1 WSL/UNC crash fix (`17ae4002`, 0.15.2) · `--hostname` (`2dcdeb13`, 0.15.3, issue #2) ·
+  dedup #3 (`e32562a3`) · release-notes CI (`7c1eb566`) · 3 P0 ICP fixes (`cdf66e94`/`1fa0cfba`/`a61f8ad0`);
+  `0.15.1` via OIDC. Full detail: git + `_IDEAS/backlog.md` + memory `licensing-fulfilment-workstream`.

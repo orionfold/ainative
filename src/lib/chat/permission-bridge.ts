@@ -40,7 +40,7 @@ const pendingRequests = new Map<string, PendingRequest>();
  */
 export class AsyncQueue<T> {
   private buffer: T[] = [];
-  private waiters: Array<(value: T) => void> = [];
+  private waiters: Array<(value: T | undefined) => void> = [];
   private closed = false;
 
   push(item: T) {
@@ -60,12 +60,35 @@ export class AsyncQueue<T> {
     return items;
   }
 
-  /** Close the queue — any pending waiters will reject */
+  /**
+   * Block until the next item is available, then resolve with it.
+   *
+   * This is the wake-signal the Claude chat engine races against the SDK
+   * iterator: when `canUseTool` pauses the SDK (no more SDK events until a
+   * gate resolves), a pull() that began awaiting before the next
+   * `emitSideChannelEvent` still resolves the moment that event is pushed —
+   * so a second permission gate surfaces immediately instead of stalling
+   * until the 120s auto-deny. Resolves with `undefined` (not a rejection)
+   * when the queue closes, so a losing race branch never throws.
+   */
+  pull(): Promise<T | undefined> {
+    if (this.buffer.length > 0) {
+      return Promise.resolve(this.buffer.shift());
+    }
+    if (this.closed) {
+      return Promise.resolve(undefined);
+    }
+    return new Promise<T | undefined>((resolve) => {
+      this.waiters.push(resolve);
+    });
+  }
+
+  /** Close the queue — any pending waiters resolve with the `undefined` sentinel */
   close() {
     this.closed = true;
     this.buffer = [];
     for (const waiter of this.waiters) {
-      // Resolve with a sentinel — callers check isClosed()
+      waiter(undefined);
     }
     this.waiters = [];
   }

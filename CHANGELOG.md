@@ -4,6 +4,16 @@
 
 This project was formerly published as `stagent` on npm and hosted at `github.com/manavsehgal/stagent`. As of 2026-04-17 it is `ainative`. The old GitHub URL redirects permanently; `stagent` on npm is deprecated with an upgrade pointer to `ainative`.
 
+## [0.15.4] — 2026-07-01
+
+### Fixed
+
+- **Compose no longer creates duplicate projects** ([#3](https://github.com/orionfold/relay/issues/3)) — when you describe an app for a named client ("build a Contractor Invoices app for Acme Renovations"), Relay now reuses an existing project of that name instead of quietly creating a second one. A full multi-artifact compose (project + profile + table + workflow + schedule) completes end-to-end and creates each artifact exactly once.
+
+### Changed
+
+- **Chat approvals are more robust under back-to-back tool prompts** — hardened the permission-request bridge so that when one approval is pending, a second approval that arrives right after surfaces immediately rather than appearing to hang. Most chat tools are auto-approved and never showed this, but tools that do prompt (some browser and external-tool actions) could previously stall for up to two minutes waiting for the next prompt to appear; they now advance without the wait.
+
 ## [0.15.3] — 2026-07-01
 
 ### Added
