@@ -7,6 +7,54 @@ import { ok, err, type ToolContext } from "./helpers";
 
 const VALID_PROJECT_STATUSES = ["active", "paused", "completed"] as const;
 
+export interface SimilarProjectMatch {
+  id: string;
+  name: string;
+  reason: string;
+}
+
+/**
+ * Find existing projects that duplicate a candidate by name.
+ *
+ * Projects are top-level (not scoped like workflows), so this scans all of
+ * them. Unlike workflow dedup, there is no fuzzy step-text signal to compare —
+ * a project is just a name + description — so this is an exact, case- and
+ * whitespace-insensitive name match only. That precisely targets the observed
+ * compose bug: a long chat truncates the earlier `create_project` call out of
+ * the sliding-window context, so the model re-creates the same named client
+ * ("Northstar CRE") instead of reusing it. Fuzzy matching would add
+ * false-positive risk with no evidence it is needed (engineering principle #6).
+ *
+ * Used by `create_project` to warn the model before blindly inserting; bypass
+ * with `force: true` when the user genuinely wants a second same-named project.
+ */
+export async function findSimilarProjects(
+  candidateName: string
+): Promise<SimilarProjectMatch[]> {
+  const candidateNameLower = candidateName.trim().toLowerCase();
+  if (!candidateNameLower) return [];
+
+  const existing = await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+    })
+    .from(projects);
+
+  const matches: SimilarProjectMatch[] = [];
+  for (const row of existing) {
+    if (row.name.trim().toLowerCase() === candidateNameLower) {
+      matches.push({
+        id: row.id,
+        name: row.name,
+        reason: `Same name: "${row.name}"`,
+      });
+    }
+  }
+  return matches;
+}
+
 export function projectTools(ctx: ToolContext) {
   return [
     defineTool(
@@ -57,9 +105,32 @@ export function projectTools(ctx: ToolContext) {
           .max(500)
           .optional()
           .describe("Absolute path to the project's working directory"),
+        force: z
+          .boolean()
+          .optional()
+          .describe(
+            "Set to true to create a project even when one with the same name already exists. Only use this when the user has explicitly confirmed they want a second same-named project. Default false — normally you should reuse the existing project returned by the near-duplicate check (its id) instead of creating a duplicate."
+          ),
       },
       async (args) => {
         try {
+          // Dedup guard: in a long compose conversation the sliding-window
+          // context can evict the earlier create_project call, so the model
+          // re-creates the same named client instead of reusing it. Check for
+          // an existing same-named project before inserting; pass force=true to
+          // bypass. Mirrors the create_workflow near-duplicate pattern.
+          if (!args.force) {
+            const similar = await findSimilarProjects(args.name);
+            if (similar.length > 0) {
+              return ok({
+                status: "similar-found",
+                message:
+                  "A project with this name already exists. Reuse it by its id for subsequent artifacts (profiles, tables, workflows), or pass force=true to create a separate same-named project.",
+                matches: similar,
+              });
+            }
+          }
+
           const now = new Date();
           const id = crypto.randomUUID();
 
