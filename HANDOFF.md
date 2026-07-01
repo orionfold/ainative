@@ -38,8 +38,14 @@ Spec: `features/fix-compose-approval-orchestration.md` (verified accurate, NO st
   non-fatal; bind host/port/data-dir are flags not constants. Lessons from issues #1 + the `--hostname` ask.
 
 ## Not-started backlog (pre-existing)
+- **`feat-ship-production-build-for-npx`** (P1, NEW) — npx runs `next dev` (tarball ships source, no
+  prebuilt `.next/`), causing customer issues #7 (HMR websocket console spam over LAN) + #8 (benign
+  `transport-dispatch <dynamic>` warning) + the `Mode: development` banner. All one root cause. Fix:
+  ship a prebuilt/standalone `.next/` so npx runs `next start`. Spec + GitHub #10 (roadmap). Smoke budget.
 - **`chore-deprecated-transitive-deps`** (P3, NEW) — 7 `npm warn deprecated` on install (all transitive;
   `glob@7` security-flagged). Spec written; `features/chore-deprecated-transitive-deps.md`.
+- **Untriaged customer issues (2026-07-01):** GitHub #4 (resolution/resize), #5 (dark mode), #6 (home
+  button), #9 (provider list load) — filed by customer, not yet investigated/labeled.
 - **`feat-prepublish-tarball-smoke`** — CI tarball pack-install smoke so the pack-`0.0.0` class can't recur.
 - **`/relay/` free-vs-paid boundary not in README** — README predates licensing (Website `later 10`).
 - **Optional:** npm Publishing → "require 2FA + disallow tokens" on `orionfold-relay` now OIDC works.
