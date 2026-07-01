@@ -30,6 +30,12 @@
   "files": [
     "dist/",
     "src/",
+    "!src/**/__tests__/**",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/**/*.spec.ts",
+    "!src/**/*.spec.tsx",
+    "!src/test/",
     "public/favicon.ico",
     "public/icon-16.png",
     "public/icon-32.png",
