@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "schema": "orionfold.license/v1",
+    "license_id": "OF-RELAY-VERIFY-20260701",
+    "product": "orionfold-relay",
+    "tier": "relay",
+    "issued_to": { "email": "manav@orionfold.com" },
+    "issued_at": "2026-07-01T01:10:21Z",
+    "not_before": "2026-07-01T01:10:21Z",
+    "expires_at": "2027-07-01T01:10:21Z",
+    "seats": 1,
+    "entitlements": ["product:orionfold-relay"],
+    "provenance": { "stripe_purchase_id": null, "stripe_price_id": null }
+  },
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "of-license-prod-2026",
+    "value": "I8xSEa1AbqFQRKyWIep1xZuGTKm6ZPH31VyTZcq3/uq6w8uec8Mu8jRGwfya5A1Got3Cbo/nGhMEp4Fl2V8xBg=="
+  }
+}
