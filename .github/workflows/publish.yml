@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write # REQUIRED: lets the runner mint the OIDC token npm verifies
-      contents: read
+      contents: write # lets the final step create a GitHub Release from CHANGELOG
     steps:
       - uses: actions/checkout@v5
 
@@ -56,3 +56,34 @@ jobs:
       # provenance automatically when publishing via trusted publishing.
       - name: Publish
         run: npm publish
+
+      # Publish a customer-facing GitHub Release from the matching CHANGELOG
+      # section, so every npm release has human-readable notes without a manual
+      # `gh release create`. Notes come from CHANGELOG.md (a committed, trusted
+      # file) — no untrusted event input is interpolated into the shell.
+      - name: Create GitHub Release from CHANGELOG
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${TAG#v}"
+          NOTES_FILE="$(mktemp)"
+          # Extract the section between "## [VERSION]" and the next "## " header.
+          awk -v ver="$VERSION" '
+            $0 ~ ("^## \\[" ver "\\]") { grab=1; next }
+            grab && /^## / { exit }
+            grab { print }
+          ' CHANGELOG.md > "$NOTES_FILE"
+          if [ ! -s "$NOTES_FILE" ]; then
+            echo "No CHANGELOG.md section for [$VERSION]; using a generic note."
+            printf 'Release %s. See CHANGELOG.md for details.\n' "$VERSION" > "$NOTES_FILE"
+          fi
+          # Create the release if it doesn't already exist (idempotent on re-run).
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skipping."
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --notes-file "$NOTES_FILE" \
+              --verify-tag
+          fi
