@@ -48,14 +48,39 @@ const _firstRunNeedsEnv =
 if (_firstRunNeedsEnv) {
   const folderName = basename(launchCwd);
   const autoDataDir = join(homedir(), `.${folderName}`);
-  writeFileSync(
-    _envLocalPath,
-    `# Auto-created by orionfold-relay on first run.\n` +
-      `# Points this folder's install at an isolated data directory.\n` +
-      `RELAY_DATA_DIR=${autoDataDir}\n`,
-    "utf-8",
-  );
-  console.log(`First run — wrote ${_envLocalPath} (RELAY_DATA_DIR=${autoDataDir}).`);
+  // The auto-write is a convenience (per-folder isolated DB), not a hard
+  // requirement — dataDir() falls back to ~/.relay when no override exists.
+  // So a failed write must be non-fatal. GitHub issue #1: running `npx` from a
+  // \\wsl.localhost UNC path makes CMD.EXE silently reset cwd to C:\Windows
+  // (unwritable), which threw an unhandled EPERM here and crashed the CLI
+  // before it could even print --help. Warn clearly and continue.
+  try {
+    writeFileSync(
+      _envLocalPath,
+      `# Auto-created by orionfold-relay on first run.\n` +
+        `# Points this folder's install at an isolated data directory.\n` +
+        `RELAY_DATA_DIR=${autoDataDir}\n`,
+      "utf-8",
+    );
+    console.log(`First run — wrote ${_envLocalPath} (RELAY_DATA_DIR=${autoDataDir}).`);
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : String(e);
+    console.warn(
+      `Warning: could not write ${_envLocalPath} (${reason}).\n` +
+        `Continuing with the default data directory (~/.relay). This folder ` +
+        `will not get an isolated database.`,
+    );
+    // WSL/Windows: a UNC-path launch lands cwd in C:\Windows. Point the user
+    // at the fix so they aren't left guessing why the write failed.
+    if (/^([A-Za-z]:)?[\\/]Windows([\\/]|$)/.test(launchCwd)) {
+      console.warn(
+        `It looks like you launched from a Windows UNC path under WSL, so the ` +
+          `working directory defaulted to "${launchCwd}". Run relay from your ` +
+          `Linux filesystem instead — e.g. \`cd ~\` first, or run it from a WSL ` +
+          `home directory rather than a \\\\wsl.localhost\\... path.`,
+      );
+    }
+  }
 }
 
 // Load .env.local from the launch directory. For a local CLI launcher the

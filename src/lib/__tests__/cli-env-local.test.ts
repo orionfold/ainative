@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { spawnSync } from "child_process";
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, mkdirSync } from "fs";
-import { tmpdir } from "os";
+import { chmodSync, mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, mkdirSync } from "fs";
+import { platform, tmpdir } from "os";
 import { basename, join, resolve } from "path";
 
 /**
@@ -101,6 +101,40 @@ describe("bin/cli.ts .env.local handling", () => {
     expect(result.status).toBe(0);
     expect(existsSync(envLocalPath)).toBe(false);
   });
+
+  // Regression: GitHub issue #1 — WSL-under-Windows. `npx` from a `\\wsl.localhost`
+  // UNC path makes CMD.EXE silently reset cwd to C:\Windows, which is unwritable,
+  // so the first-run auto-writer's writeFileSync threw an unhandled EPERM and
+  // crashed the whole CLI before commander could run. The auto-write is a
+  // convenience, not a hard dependency (dataDir() falls back to ~/.relay), so a
+  // failed write must be non-fatal. Simulated portably with a read-only cwd
+  // (EACCES on POSIX mirrors EPERM on Windows). chmod is a no-op on win32, so
+  // the read-only guarantee doesn't hold there — skip rather than assert falsely.
+  const describeReadOnly = platform() === "win32" ? it.skip : it;
+  describeReadOnly(
+    "first-run auto-writer failure is non-fatal when cwd is unwritable (issue #1: WSL/UNC crash)",
+    () => {
+      const roDir = mkdtempSync(join(tmpdir(), "ainative-cli-ro-"));
+      chmodSync(roDir, 0o555); // read + execute, no write — like C:\Windows
+      try {
+        const result = runCli(["--help"], {
+          cwd: roDir,
+          env: {}, // no RELAY_DATA_DIR — auto-writer would otherwise fire
+        });
+
+        // Must NOT crash: help prints and the process exits cleanly.
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain("Directory");
+        // A silent swallow would violate "zero silent failures" — warn the user.
+        expect(result.stderr).toMatch(/env\.local/i);
+        // Falls back to the default data dir instead of a per-folder one.
+        expect(result.stdout).toMatch(/Directory\s+.*\.relay/);
+      } finally {
+        chmodSync(roDir, 0o755);
+        rmSync(roDir, { recursive: true, force: true });
+      }
+    },
+  );
 
   it("auto-writer is skipped when shell already sets RELAY_DATA_DIR (user chose explicitly)", () => {
     const envLocalPath = join(tempDir, ".env.local");

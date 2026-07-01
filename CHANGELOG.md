@@ -4,6 +4,12 @@
 
 This project was formerly published as `stagent` on npm and hosted at `github.com/manavsehgal/stagent`. As of 2026-04-17 it is `ainative`. The old GitHub URL redirects permanently; `stagent` on npm is deprecated with an upgrade pointer to `ainative`.
 
+## [0.15.2] — 2026-07-01
+
+### Fixed
+
+- **WSL/UNC-path crash on first run** ([#1](https://github.com/orionfold/relay/issues/1)) — running `npx orionfold-relay` from a `\\wsl.localhost\...` UNC path made `CMD.EXE` silently reset the working directory to `C:\Windows`. The first-run `.env.local` auto-writer then threw an unhandled `EPERM` writing to that protected directory and crashed the CLI before it could start. The auto-write is now non-fatal: on failure it warns, falls back to the default `~/.relay` data directory, and (for a Windows-dir cwd) prints WSL-specific guidance to relaunch from the Linux filesystem.
+
 ## [0.14.0] — 2026-05-05
 
 Batched release covering the Self-Extending Machine M1–M5 milestone arc plus three net-new product surfaces (Apps, Conversation Branches, Plugins). 247 commits, 731 files changed, +72,735 / −1,209 lines since 0.13.2. No breaking changes.
