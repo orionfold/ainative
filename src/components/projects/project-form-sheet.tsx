@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FolderOpen, AlignLeft, FolderCode, Trash2, Paperclip, Plus, X } from "lucide-react";
+import { FolderOpen, AlignLeft, FolderCode, Trash2, Paperclip, Plus, X, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -31,8 +31,17 @@ interface Project {
   name: string;
   description: string | null;
   workingDirectory: string | null;
+  customerId: string | null;
   status: string;
 }
+
+interface CustomerOption {
+  id: string;
+  name: string;
+}
+
+// Radix Select cannot use an empty-string value; this sentinel maps to null.
+const NO_CUSTOMER = "__none__";
 
 interface ProjectFormSheetProps {
   mode: "create" | "edit";
@@ -53,12 +62,25 @@ export function ProjectFormSheet({
   const [description, setDescription] = useState("");
   const [workingDirectory, setWorkingDirectory] = useState("");
   const [status, setStatus] = useState("active");
+  const [customerId, setCustomerId] = useState<string>(NO_CUSTOMER);
+  const [customers, setCustomers] = useState<CustomerOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
   const [selectedDocs, setSelectedDocs] = useState<Array<{ id: string; originalName: string; mimeType: string; size: number }>>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  // Load selectable customers whenever the sheet opens
+  useEffect(() => {
+    if (!open) return;
+    fetch("/api/customers")
+      .then((r) => r.json())
+      .then((rows: Array<{ id: string; name: string }>) => {
+        setCustomers(rows.map((c) => ({ id: c.id, name: c.name })));
+      })
+      .catch(() => setCustomers([]));
+  }, [open]);
 
   // Pre-fill form in edit mode
   useEffect(() => {
@@ -67,6 +89,7 @@ export function ProjectFormSheet({
       setDescription(project.description ?? "");
       setWorkingDirectory(project.workingDirectory ?? "");
       setStatus(project.status);
+      setCustomerId(project.customerId ?? NO_CUSTOMER);
       // Load existing default documents
       fetch(`/api/projects/${project.id}/documents`)
         .then((r) => r.json())
@@ -91,6 +114,7 @@ export function ProjectFormSheet({
       setDescription("");
       setWorkingDirectory("");
       setStatus("active");
+      setCustomerId(NO_CUSTOMER);
       setSelectedDocIds(new Set());
       setSelectedDocs([]);
     }
@@ -120,6 +144,7 @@ export function ProjectFormSheet({
             name: name.trim(),
             description: description.trim() || undefined,
             workingDirectory: workingDirectory.trim() || undefined,
+            customerId: customerId === NO_CUSTOMER ? null : customerId,
             documentIds: selectedDocIds.size > 0 ? [...selectedDocIds] : undefined,
           }),
         });
@@ -140,6 +165,7 @@ export function ProjectFormSheet({
             description: description.trim() || undefined,
             workingDirectory: workingDirectory.trim() || undefined,
             status,
+            customerId: customerId === NO_CUSTOMER ? null : customerId,
             documentIds: [...selectedDocIds],
           }),
         });
@@ -238,6 +264,33 @@ export function ProjectFormSheet({
                 />
                 <p className="text-xs text-muted-foreground">
                   Agent tasks will execute in this directory. Defaults to the Orionfold Relay server directory if empty.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="proj-customer" className="flex items-center gap-1.5">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  Customer
+                </Label>
+                <Select value={customerId} onValueChange={setCustomerId}>
+                  <SelectTrigger id="proj-customer">
+                    <SelectValue placeholder="No customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_CUSTOMER}>
+                      <span className="text-muted-foreground">No customer</span>
+                    </SelectItem>
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {customers.length === 0
+                    ? "No customers yet — create one to attribute this project's AI spend."
+                    : "Link to a customer so this project's AI spend rolls up per customer."}
                 </p>
               </div>
 

@@ -50,6 +50,21 @@ describe("createProjectSchema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("accepts a customerId FK string", () => {
+    const result = createProjectSchema.safeParse({ name: "Test", customerId: "cust-123" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts null customerId (unlinked)", () => {
+    const result = createProjectSchema.safeParse({ name: "Test", customerId: null });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects empty-string customerId (must be null, not '')", () => {
+    const result = createProjectSchema.safeParse({ name: "Test", customerId: "" });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("updateProjectSchema", () => {
@@ -78,5 +93,15 @@ describe("updateProjectSchema", () => {
   it("accepts partial updates", () => {
     const result = updateProjectSchema.safeParse({ description: "Updated" });
     expect(result.success).toBe(true);
+  });
+
+  it("accepts null customerId to clear the link", () => {
+    const result = updateProjectSchema.safeParse({ customerId: null });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects empty-string customerId", () => {
+    const result = updateProjectSchema.safeParse({ customerId: "" });
+    expect(result.success).toBe(false);
   });
 });
