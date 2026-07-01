@@ -9,6 +9,8 @@ This project was formerly published as `stagent` on npm and hosted at `github.co
 ### Fixed
 
 - **LAN access no longer blocked by a cross-origin error** ([#13](https://github.com/orionfold/relay/issues/13)) — after binding to the network with `--hostname 0.0.0.0`, opening Relay from another machine failed with "Blocked cross-origin request to Next.js dev resource" and a broken UI. When you opt into LAN binding, Relay now trusts private-network (RFC1918) origins so the app loads normally from other machines on your LAN. Public origins remain blocked. (A future release will ship a production build for `npx`, which removes this dev-mode restriction entirely.)
+- **Providers & Runtimes settings no longer spin forever on error** ([#9](https://github.com/orionfold/relay/issues/9)) — if loading the provider configuration failed, the Settings section showed an endless "Loading…" card with no explanation. It now surfaces the error and a **Retry** button so you can see what happened and try again.
+- **UI scales up on high-resolution 4K displays** ([#4](https://github.com/orionfold/relay/issues/4)) — text and spacing were fixed to a small base size, so everything looked tiny on a 4K screen and needed browser zoom to read. The interface now scales up gradually on wide/high-resolution displays (comfortable by ~4K) while staying exactly as-is on standard laptops and monitors.
 
 ## [0.15.4] — 2026-07-01
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ChevronDown,
   ChevronRight,
   Network,
@@ -286,6 +287,7 @@ function ProviderRow({
 export function ProvidersAndRuntimesSection() {
   const [data, setData] = useState<ProvidersPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [anthropicOpen, setAnthropicOpen] = useState(false);
   const [openAIOpen, setOpenAIOpen] = useState(false);
   const [openAILoginState, setOpenAILoginState] = useState<OpenAILoginState | null>(null);
@@ -298,8 +300,20 @@ export function ProvidersAndRuntimesSection() {
       if (res.ok) {
         const json = (await res.json()) as ProvidersPayload;
         setData(json);
+        setError(null);
         return json;
       }
+      // A non-OK response left the section spinning forever (issue #9): the
+      // render guard is `loading || !data`, so `data` staying null on error
+      // meant a permanent "Loading…" card with no visible failure. Surface it.
+      setError(`Failed to load provider configuration (HTTP ${res.status}).`);
+      return null;
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? `Failed to load provider configuration: ${err.message}`
+          : "Failed to load provider configuration.",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -630,7 +644,7 @@ export function ProvidersAndRuntimesSection() {
 
   // ── Render ───────────────────────────────────────────────────────
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <Card className="surface-card">
         <CardHeader>
@@ -640,6 +654,38 @@ export function ProvidersAndRuntimesSection() {
           </CardTitle>
           <CardDescription>Loading provider configuration...</CardDescription>
         </CardHeader>
+      </Card>
+    );
+  }
+
+  // Fetch finished but produced no data (non-OK response or thrown error).
+  // Show an actionable error with a retry instead of an endless spinner —
+  // the previous `loading || !data` guard silently hung here (issue #9).
+  if (!data) {
+    return (
+      <Card className="surface-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            Providers &amp; Runtimes
+          </CardTitle>
+          <CardDescription>
+            {error ?? "Failed to load provider configuration."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <button
+            type="button"
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              void fetchData();
+            }}
+            className="rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+          >
+            Retry
+          </button>
+        </CardContent>
       </Card>
     );
   }

@@ -68,7 +68,13 @@ const CRITICAL_THEME_CSS = `
     --surface-2: oklch(0.16 0.02 250);
     --border: oklch(0.26 0.015 250);
   }
-  html { background: var(--background); font-size: 14px; }
+  /* Root rem base. Fixed 14px left the whole rem-based design tiny on high-res
+     4K displays (issue #4) — text stayed 14px regardless of viewport, forcing
+     browser zoom. This clamp holds a flat 14px through 1920px-wide viewports
+     (unchanged for existing laptop/desktop users) and only ramps up on QHD/4K:
+     ~16px at 2560px, capped at 18px from 3200px+. Type and spacing grow
+     proportionally (the design is rem-based) with no component changes. */
+  html { background: var(--background); font-size: clamp(14px, 0.35vw + 7.3px, 18px); }
 `.replace(/\s+/g, " ").trim();
 
 export default async function RootLayout({

@@ -147,6 +147,26 @@ describe("providers and runtimes section", () => {
 
     expect(screen.getAllByText("Waiting for ChatGPT sign-in")).toHaveLength(2);
   });
+
+  it("shows an error card with retry (not an endless spinner) when the fetch is non-OK (issue #9)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
+    );
+
+    render(<ProvidersAndRuntimesSection />);
+
+    // The loading state must clear and surface a visible failure with a retry —
+    // the old `loading || !data` guard hung on "Loading provider configuration".
+    const retry = await screen.findByRole("button", { name: "Retry" });
+    expect(retry).toBeInTheDocument();
+    expect(
+      screen.getByText(/Failed to load provider configuration \(HTTP 500\)/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Loading provider configuration..."),
+    ).not.toBeInTheDocument();
+  });
 });
 
 // ── Cascade-specific tests ─────────────────────────────────────────
