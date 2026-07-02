@@ -4,6 +4,19 @@
 
 This project was formerly published as `stagent` on npm and hosted at `github.com/manavsehgal/stagent`. As of 2026-04-17 it is `ainative`. The old GitHub URL redirects permanently; `stagent` on npm is deprecated with an upgrade pointer to `ainative`.
 
+## [0.20.0] — 2026-07-01
+
+### Added
+
+- **The enterprise trust pack** — every question a security evaluator asks now has a written, linkable, code-linked answer in [`docs/trust/`](docs/trust/):
+  - **[Data flow](docs/trust/data-flow.md)** — the complete inventory of every outbound network call the product can make, verified against the code with file references. The headline, now provable rather than asserted: for a plain `npx orionfold-relay` install, the only always-on call is a checksum-verified download of the server build from GitHub Releases. No telemetry, no analytics, no update checks, no license server, no calls to orionfold.com — and the calls that do exist (your model providers, channels you configure, tools you enable) each list their trigger, destination, what's sent, and the off switch.
+  - **[Security packet](docs/trust/security-packet.md)** — a two-page overview you can hand to a security review as-is: architecture, the "we host no customer data" argument and its basis, the subprocessor picture (none, in the SaaS sense — the parties in the path are chosen by and contracted to you), application posture, and disclosure process.
+  - **[Supply-chain verification](docs/trust/supply-chain.md)** — how to verify the package you install is what CI built, before you run it: npm provenance attestations (`npm audit signatures`), the sha256-verified build artifact, and version pinning that means something because nothing self-updates.
+  - **[License terms in plain language](docs/trust/license-terms.md)** — what a seat is (defined by trust, audited by you with `relay license status`), how transfer works, and exactly what expiry does and doesn't do, each claim linked to the enforcing code.
+  - **[Continuity](docs/trust/continuity.md)** — what happens to your deployment if Orionfold disappears: Apache-2.0 engine + local SQLite + offline licenses means you keep everything you have, and the honest edge cases are written down too.
+- **CycloneDX SBOM with every release** — from this release onward, a software bill of materials of the production dependency tree is attached to every GitHub Release (`orionfold-relay-<version>.sbom.cdx.json`), generated in the same gated publish workflow that builds the package. Feed it to Dependency-Track, Grype, or your scanner of choice.
+- **`SECURITY.md`** — private vulnerability reporting via GitHub security advisories, with a 72-hour acknowledgment commitment.
+
 ## [0.19.0] — 2026-07-01
 
 ### Added

@@ -63,6 +63,19 @@ jobs:
             exit 1
           fi
 
+      # Supply-chain disclosure: a CycloneDX SBOM of the production dependency
+      # tree ships as a GitHub Release asset for every version, so evaluators
+      # can audit what `npm install orionfold-relay` pulls without installing
+      # it. Generated from the same lockfile this publish runs against. The
+      # node -e parse is a guard: `npm sbom` writing a warning into stdout
+      # would otherwise ship a corrupt asset silently.
+      - name: Generate CycloneDX SBOM
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          npm sbom --sbom-format cyclonedx --omit dev > "orionfold-relay-$VERSION.sbom.cdx.json"
+          node -e "JSON.parse(require('fs').readFileSync('orionfold-relay-$VERSION.sbom.cdx.json','utf8'))"
+          echo "SBOM generated: orionfold-relay-$VERSION.sbom.cdx.json"
+
       # Production build artifact (#10): npx installs download this from the
       # GitHub Release on first run and launch `next start` instead of `next dev`.
       - name: Build production .next artifact
@@ -126,4 +139,5 @@ jobs:
           gh release upload "$TAG" \
             "dist-artifacts/relay-next-build-$VERSION.tgz" \
             "dist-artifacts/relay-next-build-$VERSION.tgz.sha256" \
+            "orionfold-relay-$VERSION.sbom.cdx.json" \
             --clobber

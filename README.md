@@ -104,10 +104,13 @@ The governance is *in* the workflow, not bolted on. A blueprint is a fixed step 
 ## Why it stays trustworthy
 
 - **Local-first** — SQLite database, no cloud dependency, `npx orionfold-relay` and go
+- **Never phones home** — no telemetry, no update checks, no license server; the complete outbound-network inventory is documented and code-linked in [docs/trust/data-flow.md](docs/trust/data-flow.md)
 - **Your rules, enforced** — tool permissions, inbox approvals, and audit trails for every agent action
 - **Your AI team** — 21 specialist profiles ready to deploy, each with instructions, tool policies, and runtime tuning
 - **Know what you spend** — usage metering, budgets, and per-provider/per-model spend visibility on governed runs
-- **Open source** — Apache-2.0, read the engine and run it yourself
+- **Open source & verifiable** — Apache-2.0, read the engine and run it yourself; every npm release ships with a provenance attestation and a CycloneDX SBOM ([docs/trust/supply-chain.md](docs/trust/supply-chain.md))
+
+Evaluating Relay for an enterprise? The full trust pack — [security packet](docs/trust/security-packet.md), [data-flow disclosure](docs/trust/data-flow.md), [supply-chain verification](docs/trust/supply-chain.md), [plain-language license terms](docs/trust/license-terms.md), and [continuity statement](docs/trust/continuity.md) — lives in [`docs/trust/`](docs/trust/). Vulnerability reports: [SECURITY.md](SECURITY.md).
 
 <img src="https://raw.githubusercontent.com/orionfold/relay/main/public/readme/inbox-list.png" alt="The governance command center: tool-permission approvals, agent questions, and a permission queue — nothing reaches a client without sign-off" width="1200" />
 
@@ -138,6 +141,9 @@ relay license remove <license-id>                            # forget a license 
   installed — it only gates new premium installs and updates.
 - **What's free stays free.** Capabilities never move from the free engine into a paid
   pack. Paid packs are new content, not repossessed features.
+
+The full terms in plain language — seats, transfer, what expiry does and doesn't do —
+are in [docs/trust/license-terms.md](docs/trust/license-terms.md).
 
 ---
 
