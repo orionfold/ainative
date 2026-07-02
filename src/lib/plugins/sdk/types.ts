@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+// The plugin apiVersion CURRENT releases author against. Single source of
+// truth: the registry's compatibility window is built from it, and the
+// create_plugin_spec chat-tool scaffold stamps it into generated manifests
+// (a hardcoded copy there once drifted to "0.14" — scaffolded plugins would
+// have been disabled on load the moment the window tightened). Bump on every
+// MINOR release; api-version-window.test.ts fails if this goes stale.
+export const CURRENT_PLUGIN_API_VERSION = "0.17";
+
 // Shared capability tuple — single source of truth used by Zod schema and
 // capability-check.ts hash derivation. Exported so consumers don't need a
 // parallel list.

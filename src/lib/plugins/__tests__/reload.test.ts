@@ -11,7 +11,7 @@ function writePlugin(id: string, version: string) {
   const dir = path.join(tmpDir, "plugins", id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "plugin.yaml"), yaml.dump({
-    id, version, apiVersion: "0.14", kind: "primitives-bundle",
+    id, version, apiVersion: "0.17", kind: "primitives-bundle",
   }));
 }
 

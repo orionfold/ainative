@@ -14,7 +14,7 @@ function writeBundleWithTable(pluginId: string, table: Record<string, unknown>) 
   fs.mkdirSync(path.join(root, "tables"), { recursive: true });
   fs.writeFileSync(
     path.join(root, "plugin.yaml"),
-    yaml.dump({ id: pluginId, version: "0.1.0", apiVersion: "0.14", kind: "primitives-bundle" })
+    yaml.dump({ id: pluginId, version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" })
   );
   fs.writeFileSync(path.join(root, "tables", `${(table.id as string)}.yaml`), yaml.dump(table));
 }

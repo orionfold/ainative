@@ -60,7 +60,7 @@ function makeYaml(overrides: Record<string, unknown> = {}): string {
   const base: Record<string, unknown> = {
     id: "gmail-triage",
     version: "1.0.0",
-    apiVersion: "0.15",
+    apiVersion: "0.17",
     kind: "chat-tools",
     capabilities: ["net"],
     ...overrides,
@@ -135,7 +135,7 @@ describe("capability-check — deriveManifestHash", () => {
     const orderA = [
       "id: gmail-triage",
       "version: 1.0.0",
-      "apiVersion: \"0.15\"",
+      "apiVersion: \"0.17\"",
       "kind: chat-tools",
       "capabilities:",
       "  - net",
@@ -146,7 +146,7 @@ describe("capability-check — deriveManifestHash", () => {
       "capabilities:",
       "  - net",
       "id: gmail-triage",
-      "apiVersion: \"0.15\"",
+      "apiVersion: \"0.17\"",
       "version: 1.0.0",
     ].join("\n");
 
@@ -322,7 +322,7 @@ describe("capability-check — isCapabilityAccepted self-extension bypass (TDR-0
   const chatToolsManifest = (overrides: Record<string, unknown> = {}) => ({
     id: "test-plugin",
     version: "0.1.0",
-    apiVersion: "0.14",
+    apiVersion: "0.17",
     kind: "chat-tools" as const,
     capabilities: ["net"],
     ...overrides,
@@ -603,7 +603,7 @@ describe("capability-check — resolvePluginToolApproval", () => {
       [
         "id: echo",
         'version: "1.0.0"',
-        'apiVersion: "0.15"',
+        'apiVersion: "0.17"',
         "kind: chat-tools",
         "capabilities:",
         "  - net",
@@ -974,7 +974,7 @@ describe("capability-check — grantPluginCapabilities (T15)", () => {
     const manifest: Record<string, unknown> = {
       id,
       version: "1.0.0",
-      apiVersion: "0.15",
+      apiVersion: "0.17",
       kind: "chat-tools",
       capabilities: ["net"],
       ...overrides,
@@ -1011,7 +1011,7 @@ describe("capability-check — grantPluginCapabilities (T15)", () => {
       [
         "id: kind5-bundle",
         'version: "1.0.0"',
-        'apiVersion: "0.15"',
+        'apiVersion: "0.17"',
         "kind: primitives-bundle",
         "",
       ].join("\n"),

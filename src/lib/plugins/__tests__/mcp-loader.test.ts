@@ -59,7 +59,7 @@ function writePluginYaml(pluginId: string, overrides: Record<string, unknown> = 
   const manifest: Record<string, unknown> = {
     id: pluginId,
     version: "1.0.0",
-    apiVersion: "0.15",
+    apiVersion: "0.17",
     kind: "chat-tools",
     capabilities: ["net"],
     ...overrides,
@@ -309,7 +309,7 @@ describe("T13 — safe-mode (RELAY_SAFE_MODE=true) with visible disabled plugins
       [
         "id: beta",
         'version: "1.0.0"',
-        'apiVersion: "0.15"',
+        'apiVersion: "0.17"',
         "kind: primitives-bundle",
       ].join("\n") + "\n",
     );
@@ -685,7 +685,7 @@ it("18. Kind 5 plugins (primitives-bundle) are ignored by the MCP loader", async
   const primitiveYaml = [
     `id: ${pluginId}`,
     "version: 1.0.0",
-    "apiVersion: 0.15",
+    "apiVersion: 0.17",
     "kind: primitives-bundle",
   ].join("\n");
   fs.writeFileSync(path.join(dir, "plugin.yaml"), primitiveYaml);

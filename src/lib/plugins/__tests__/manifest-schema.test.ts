@@ -5,7 +5,7 @@ describe("PluginManifestSchema", () => {
   const valid = {
     id: "finance-pack",
     version: "0.1.0",
-    apiVersion: "0.14",
+    apiVersion: "0.17",
     kind: "primitives-bundle",
   };
 

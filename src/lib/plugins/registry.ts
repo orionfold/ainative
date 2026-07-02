@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import yaml from "js-yaml";
 import { z } from "zod";
-import { PluginManifestSchema, type LoadedPlugin, type PluginManifest, type PluginTableTemplate } from "./sdk/types";
+import { PluginManifestSchema, CURRENT_PLUGIN_API_VERSION, type LoadedPlugin, type PluginManifest, type PluginTableTemplate } from "./sdk/types";
 import { getAinativePluginsDir, getAinativeLogsDir } from "@/lib/utils/ainative-paths";
 import {
   mergePluginProfiles,
@@ -48,16 +48,12 @@ import type { ScheduleSpec } from "@/lib/validators/schedule-spec";
 // asserts the current and previous MINOR are present. Drop a value or
 // forget to widen on bump → test fails.
 //
-// Bridge note (0.13.x → 0.14.0): the package is currently 0.13.3 and M1
-// will ship at 0.14.0. We list THREE MINORs ("0.14", "0.13", "0.12")
-// during this transition so that:
-//   - test fixtures and dogfood bundles already authored against the
-//     M1 contract (apiVersion: "0.14") load on the 0.13.x dev branch, AND
-//   - the self-enforcing window test (current=0.13, previous=0.12) passes.
-// Once 0.14.0 ships, drop "0.12" and the set tightens to the standard
-// 2-MINOR window ("0.14", "0.13"). When 0.15.0 ships, it becomes
-// ("0.15", "0.14"), and so on.
-const SUPPORTED_API_VERSIONS = new Set(["0.14", "0.13", "0.12"]);
+// Maintenance: bump CURRENT_PLUGIN_API_VERSION (sdk/types.ts) and the
+// previous-MINOR literal here on every MINOR release (the window went
+// unfixed from 0.15.0 through 0.16.0 — treat the window test's failure as
+// a release blocker, not noise). The 0.13→0.14 three-MINOR bridge is over;
+// this is the standard 2-MINOR window now.
+const SUPPORTED_API_VERSIONS = new Set([CURRENT_PLUGIN_API_VERSION, "0.16"]);
 
 /** Test-helper export so the window-enforcement test can read state. */
 export function isSupportedApiVersion(apiVersion: string): boolean {

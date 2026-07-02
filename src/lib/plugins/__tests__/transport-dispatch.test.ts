@@ -477,7 +477,7 @@ describe("14. Loader integration", () => {
     const yamlContent = [
       `id: ${pluginId}`,
       `version: "1.0.0"`,
-      `apiVersion: "0.15"`,
+      `apiVersion: "0.17"`,
       `kind: chat-tools`,
       `capabilities:`,
       `  - net`,
@@ -544,7 +544,7 @@ process.stdin.resume();
     const yamlContent = [
       `id: ${pluginId}`,
       `version: "1.0.0"`,
-      `apiVersion: "0.15"`,
+      `apiVersion: "0.17"`,
       `kind: chat-tools`,
       `capabilities:`,
       `  - net`,

@@ -14,7 +14,7 @@ function writeBundle(pluginId: string, profiles: Array<{ id: string; name: strin
   fs.mkdirSync(root, { recursive: true });
   fs.writeFileSync(
     path.join(root, "plugin.yaml"),
-    yaml.dump({ id: pluginId, version: "0.1.0", apiVersion: "0.14", kind: "primitives-bundle" })
+    yaml.dump({ id: pluginId, version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" })
   );
   for (const p of profiles) {
     const dir = path.join(root, "profiles", p.id);

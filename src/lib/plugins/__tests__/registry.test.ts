@@ -49,7 +49,7 @@ describe("plugin registry", () => {
     writePluginManifest("finance-pack", {
       id: "finance-pack",
       version: "0.1.0",
-      apiVersion: "0.14",
+      apiVersion: "0.17",
       kind: "primitives-bundle",
     });
     // Must use reloadPlugins() since beforeEach already populated the cache.
@@ -62,10 +62,10 @@ describe("plugin registry", () => {
 
   it("disables a plugin with malformed manifest, continues boot", async () => {
     writePluginManifest("good", {
-      id: "good", version: "0.1.0", apiVersion: "0.14", kind: "primitives-bundle",
+      id: "good", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle",
     });
     writePluginManifest("bad", {
-      id: "bad", version: "not-semver", apiVersion: "0.14", kind: "primitives-bundle",
+      id: "bad", version: "not-semver", apiVersion: "0.17", kind: "primitives-bundle",
     });
     const plugins = await reloadPlugins();
     expect(plugins.length).toBe(2);
@@ -89,12 +89,12 @@ describe("plugin registry", () => {
     fs.mkdirSync(path.join(tmpDir, "plugins", "first-dir"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, "plugins", "first-dir", "plugin.yaml"),
-      yaml.dump({ id: "dup", version: "0.1.0", apiVersion: "0.14", kind: "primitives-bundle" }),
+      yaml.dump({ id: "dup", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" }),
     );
     fs.mkdirSync(path.join(tmpDir, "plugins", "second-dir"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, "plugins", "second-dir", "plugin.yaml"),
-      yaml.dump({ id: "dup", version: "0.2.0", apiVersion: "0.14", kind: "primitives-bundle" }),
+      yaml.dump({ id: "dup", version: "0.2.0", apiVersion: "0.17", kind: "primitives-bundle" }),
     );
     const plugins = (await reloadPlugins()).sort((a, b) => a.rootDir.localeCompare(b.rootDir));
     expect(plugins.length).toBe(2);
@@ -106,7 +106,7 @@ describe("plugin registry", () => {
 
   it("getPlugin returns null for unknown id, plugin for known", async () => {
     writePluginManifest("known", {
-      id: "known", version: "0.1.0", apiVersion: "0.14", kind: "primitives-bundle",
+      id: "known", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle",
     });
     // reloadPlugins to pick up the new file and populate cache for getPlugin.
     await reloadPlugins();

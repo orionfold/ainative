@@ -21,7 +21,7 @@ function chatToolsManifest(overrides: Partial<PluginManifest> = {}): PluginManif
   return {
     id: "test-plugin",
     version: "0.1.0",
-    apiVersion: "0.14",
+    apiVersion: "0.17",
     kind: "chat-tools",
     capabilities: ["net"],
     ...overrides,
@@ -32,7 +32,7 @@ function primitivesBundleManifest(overrides: Partial<PluginManifest> = {}): Plug
   return {
     id: "test-bundle",
     version: "0.1.0",
-    apiVersion: "0.14",
+    apiVersion: "0.17",
     kind: "primitives-bundle",
     ...overrides,
   } as PluginManifest;
@@ -96,7 +96,7 @@ describe("classifyPluginTrust — self-extension signals", () => {
     const manifest = {
       id: "test-plugin",
       version: "0.1.0",
-      apiVersion: "0.14",
+      apiVersion: "0.17",
       kind: "chat-tools",
     } as PluginManifest;
     expect(classifyPluginTrust(manifest, foreignRoot)).toBe("self");

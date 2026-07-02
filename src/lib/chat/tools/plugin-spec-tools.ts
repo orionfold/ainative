@@ -24,6 +24,7 @@ import { ok, err, type ToolContext } from "./helpers";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { getAinativePluginsDir } from "@/lib/utils/ainative-paths";
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 
 // ── Errors (every error has a name per CLAUDE.md principle #2) ──────
 
@@ -140,7 +141,7 @@ function renderPluginYaml(input: {
     ``,
     `id: ${input.id}`,
     `version: 0.1.0`,
-    `apiVersion: "0.14"`,
+    `apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`,
     `kind: chat-tools`,
     `name: ${JSON.stringify(input.name)}`,
     `description: ${JSON.stringify(input.description)}`,

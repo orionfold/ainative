@@ -22,7 +22,7 @@ describe("POST /api/plugins/reload", () => {
     fs.mkdirSync(path.join(tmpDir, "plugins", "demo"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, "plugins", "demo", "plugin.yaml"),
-      yaml.dump({ id: "demo", version: "0.1.0", apiVersion: "0.14", kind: "primitives-bundle" })
+      yaml.dump({ id: "demo", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" })
     );
     const res = await POST();
     const body = await res.json();

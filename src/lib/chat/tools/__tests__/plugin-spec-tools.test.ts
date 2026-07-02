@@ -54,7 +54,7 @@ describe("plugin-spec-tools — scaffoldPluginSpec + create_plugin_spec chat too
     expect(yamlText).toMatch(/^author: ainative$/m);
     expect(yamlText).toMatch(/^origin: ainative-internal$/m);
     expect(yamlText).toContain("id: github-mine");
-    expect(yamlText).toContain('apiVersion: "0.14"');
+    expect(yamlText).toContain('apiVersion: "0.17"');
     expect(yamlText).toContain("kind: chat-tools");
   });
 
