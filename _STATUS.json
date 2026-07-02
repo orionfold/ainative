@@ -1,19 +1,20 @@
 {
-  "focus": "Shipped orionfold-relay@0.15.5 (customer triage + bundle: #13/#9/#4 fixed+closed). Next: retest 0.15.5 in customer's Alpine-VM→Windows topology, then repro remaining held issues (#5/#6/#11/#12 — 3 had no source defect on localhost).",
+  "focus": "PLG refinement program specced (_SPECS/plg-refine.md): persist-license lifecycle, graduation surface, enterprise trust, growth loops — prioritized first over next releases per operator. #10 packaging still implements first (S1); PLG-1 rides the same train (S2).",
   "blockers": [],
   "next": [
-    "Await customer retest of 0.15.5 (asked on #13) — cross-origin fix may already resolve #5/#6/#11/#12 in their Alpine-VM→Windows LAN setup",
-    "If held issues persist: repro in cross-machine topology (not localhost); check #10 prod-build (next start) as the class fix",
-    "ICP smoke backlog (NOT started): workflow-model-prefs, dashboard-labeling, pack-install, chat-spend-metering, inbox-checkpoint (P2)",
-    "Commit 5 untracked features/fix-*.md ICP specs",
-    "Pre-existing test failures (router/api-version-window) — separate triage, not regressions"
+    "S1: commit pending specs, implement feat-ship-production-build-for-npx (#10); build its e2e smoke AS the PLG-S staging recipe v1 (tarball → isolated data-dir → prod launch → capture)",
+    "S2 (0.16.x): groom+implement feat-license-lifecycle per _SPECS/plg-refine.md PLG-1 (persist license, relay license verb, banner identity, ceremony) + re-gate seed/clear on RELAY_STAGING=true; acceptance = staged fulfilment sim; gate D4 wording + banner wording with operator",
+    "S3 (0.17): PLG-2a /packs gallery + Settings License page (absorbs fix-pack-install-discoverability)",
+    "S4: author FIRST premium pack + Naya-path e2e; Website relay (pricing copy, email, gating philosophy)",
+    "Held #5/#6/#11/#12 reactive (customer retest); ICP P1s interleave from S4"
   ],
   "recent": [
-    "0.15.5 released: 55ab07a0 #13 LAN cross-origin · 23845a97 #9 providers-error + #4 4K-scaling · bf204c24 env-var copy",
-    "Customer topology: npx in Alpine VM → --hostname 0.0.0.0 → accessed from Windows over LAN (cross-origin) — likely shared cause of held cluster",
-    "Triage of 6 customer issues: only #4/#9 confirmable quick fixes; #5/#6/#11/#12 held (no source defect on localhost)",
-    "Browser-verified 0.15.5: 3840px→18px root font, forced-500 → providers error card + Retry (not spinner)",
-    "Pre-existing test failures proven identical at pre-session b0c1dae6 (zero regressions from 0.15.5)"
+    "PLG program spec written to _SPECS/plg-refine.md from 4 parallel web-research streams (activation-UX teardowns, PLG conversion literature, enterprise/regulated-buyer expectations, feel-paid moments); decisions D1-D7 locked",
+    "Key research verdicts: offline Ed25519 license file = documented enterprise best practice (wedge, keep); zero surveyed products discard the license after verify (Relay does — root gap); invisible premium = conversion floor (soft-gate visibility converts 3-5x); never claw back installed content (perpetual fallback)",
+    "Verified in code: banner hardcoded bin/cli.ts:352; license verified-then-discarded install.ts:127-139; no premium pack exists; no UI license surface; npm provenance already emitted (publish.yml OIDC)",
+    "PLG-S staging harness added to spec (operator ask): isolated tarball-install staging + 4 capture modes (CLI first-run, browser walkthrough, free→paid fulfilment sim, issue replication) + harness-side instrumentation; found seed/clear are NODE_ENV-gated (would 404 in prod builds) — re-gate on RELAY_STAGING=true",
+    "fix-pack-install-discoverability absorbed into PLG-2a (spec annotated)",
+    "#10 groomed prior: download-prebuilt-on-first-run; spec uncommitted"
   ],
   "metrics": {}
 }
