@@ -1,23 +1,24 @@
 {
-  "focus": "PLG-2b GROOMED (b4f4fb57): feat-agency-pro-pack spec complete, all decisions resolved (standalone, $499/year + orionfold.com/relay, agent-level batch, CRE-first). S4 = build it: engine fixes 0a/0b → relay-agency-pro content (chapters 1–4 + CRE deep) → full Naya Mode C run + Website relay.",
+  "focus": "0.19.0 SHIPPED (62014e56, npm latest): relay-agency-pro — the first premium pack (PLG-2b) — plus free engine fixes 0a/0b. The conversion funnel now has a real numerator. S5 = PLG-3 enterprise trust pack; watch the Website relay channel for the D4/D5/email replies.",
   "blockers": [],
   "next": [
-    "S4 (0.19.0) commit 1: engine fixes 0a/0b — rewrite blueprints[].trigger.table at install + register manifest schedules as real schedule rows (free D5, own bisectable commit, smoke budget)",
-    "S4 commit 2: author relay-agency-pro (standalone; finance cockpit, intake pipelines, new-business, governance, CRE deep; nonprofit = v0.2.0 first paid update); retire temp premium-fixture protocol",
-    "S4: full Naya-path Mode C staging run from packed tarball (loopback + --hostname LAN); Website relay via strategy/relay/_RELAY.md (pricing copy, fulfilment email rewrite, gating-philosophy page)",
-    "S5: PLG-3 enterprise trust pack (no-phone-home one-liner, data-flow diagram, SBOM/provenance surfacing, security packet)",
-    "Held #5/#6/#11/#12 reactive (retest asks live; prod build likely moots) + ICP P1s interleave (workflow-model-preference, budget-vs-cost labeling, chat-spend-metering diagnose)"
+    "S5: PLG-3 enterprise trust pack — no-phone-home one-liner, data-flow diagram, SBOM + provenance surfacing, license terms page (Website), security packet; acceptance = every evaluator question linkable",
+    "Check strategy/relay/_RELAY.md for Website replies (D4 pricing copy needs OPERATOR CONFIRM on wording; fulfilment email ONE-command rewrite; D5 gating-philosophy page); link from README Free-vs-Paid when live",
+    "S6+: PLG-4 growth loops, operator-gated each; Agency Pro v0.2.0 = nonprofit deep chapter, must exercise the pack-UPDATE workflow (D4 renewal pitch depends on it)",
+    "ICP P1s interleave: fix-workflow-model-preference-propagation (smoke budget), fix-dashboard-budget-vs-cost-labeling, fix-chat-spend-metering-diagnose",
+    "Held #5/#6/#11/#12 reactive — retest asks live; 0.16–0.19 all shipped since"
   ],
   "recent": [
-    "feat-agency-pro-pack groomed + committed/pushed (b4f4fb57): 5 chapters all pure composition, 4 open questions resolved (standalone by code evidence; $499/year Stripe LIVE + orionfold.com/relay; agent-level batch iteration; CRE-first, operator)",
-    "installPack semantics check found 2 latent engine gaps, folded into S4 as free D5 scope: rewriteTableRefs skips blueprints[].trigger.table (pack-authored triggers never fire); manifest schedules never registered as DB rows (scheduleNextFire reads null)",
-    "0.18.0 shipped: /packs gallery + Settings→License + name-based install + install/license APIs (91cce9bf); 24 unit tests TDD; publish CI green incl. npx prod smoke; issue #15; npm latest=0.18.0",
-    "Mode B capture (PLG-S S3 slice) in output/staging/2026-07-01/: 7 screens + console + network walking 402 → real-license paste ceremony → store-consult premium install → D4 proof; D7 parity CLI↔UI verified",
-    "Prior: 0.17.0 license lifecycle PLG-1 (#14); 0.16.0 prod build for npx (#10)"
+    "0.19.0 shipped + published (OIDC, CI smoke green): relay-agency-pro premium pack — 5 chapters (finance cockpit w/ scheduled month-end close + ledger KPIs, intake row-insert pipelines, new-business machine, hardened governance + audit export + ollama sensitive-client profile, CRE renewal deep chapter); $499/year, orionfold.com/relay; issue #16",
+    "Engine fixes 0a/0b shipped FREE (D5): pack trigger.table rewritten to real UUID at install; manifest schedules registered as real rows (app:<id>:<sched> composite, state-preserving upsert, fire-path dispatches the runs blueprint, delete-cascade sweeps); + warm blueprint-cache invalidation on install (no-restart installs)",
+    "Smoke budget paid off: live dev smoke caught invalid pattern enum (registry skips invalid content silently) + the warm-cache gap; both fixed with regression tests; publish smoke Case L now exercises the REAL pack incl. unlicensed refusal",
+    "apiVersion window bumped IN the release commit for the first time; staleness class structurally fixed (17 test files now derive from CURRENT_PLUGIN_API_VERSION; examples/*/plugin.yaml is the one manual site, fails loudly)",
+    "Website asks posted (strategy/relay/_RELAY.md later-2): D4 perpetual-fallback pricing copy (operator confirm), fulfilment email = ONE command + keep-this-file, D5 gating-philosophy page — with the real pack name + final unlock verb"
   ],
   "metrics": {
-    "released": "0.18.0",
-    "npm_tarball": "1.4 MB (0.17.0 measurement; publish guard <10 MB passed for 0.18.0, not re-read)",
+    "released": "0.19.0",
+    "premium_packs": 1,
+    "npm_tarball": "1.4 MB (0.17.0 measurement; publish guard <10 MB passed for 0.19.0, not re-read)",
     "prod_artifact": "~35.5 MB gz (0.16.0 measurement, not re-read)"
   }
 }
