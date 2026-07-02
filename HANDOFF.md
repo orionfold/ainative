@@ -1,65 +1,61 @@
 # Relay — HANDOFF
 
-_Last updated: 2026-07-01 (pt: S1 DONE — 0.16.0 SHIPPED: production build for npx (#10) live on
-npm + GitHub Release artifact verified e2e from a real install. Prior tail: PLG program specced,
-backlog PLG-first — see git + Recently shipped.)_
+_Last updated: 2026-07-01 (pt: S2 DONE — 0.17.0 SHIPPED: license lifecycle core PLG-1
+(`faad6b41`+`2eb35d86`), public record issue #14, apiVersion-window staleness fixed (`580e553f`).
+Prior tail: 0.16.0 prod-build-for-npx (#10) + PLG program spec — see git + beacon recent.)_
 
-## ⚠️ OPERATOR FIRST — one action the session couldn't take (permission-gated)
-1. `rm -rf ~/.relay-isolated` (6.4M throwaway test DB) — delete was classifier-blocked.
-(v0.16.0 issue updates POSTED on operator go-ahead: #7/#8/#10 closed +`shipped`, retest asks
-on #5/#6/#11/#12.)
+## ▶️ NEXT SESSION (S3, 0.18.x) — PLG-2a graduation surface (`_SPECS/plg-refine.md` §5)
+- Groom PLG-2a: update `fix-pack-install-discoverability` → absorb into one spec — `/packs`
+  gallery route (bundled + premium, visible-but-locked w/ preview + price + get-license CTA, D6)
+  + Settings→License page reading the D7 store (licensed-to, entitlements, seats, renewal,
+  paste/upload activation) + name-based install (`pack add relay-agency`).
+- Flag UI slice for `/frontend-designer`; **Mode B browser-walkthrough capture** of the new
+  surface (screenshots + console + network per ICP protocol) into `output/staging/<date>/`.
+- The web UI reads the same store as the CLI (D7 — one identity model). Store API is
+  `src/lib/licensing/store.ts` (`listLicenses`, `getLicensedIdentity`); fulfilment captures
+  email always / name usually / org never (memory `fulfilment-identity-capture`).
+- Version note: 0.17.0 is taken by PLG-1; PLG-2a lands 0.18.x (or 0.17.x patch — decide at grooming).
 
-## ▶️ NEXT SESSION (S2, 0.17.x) — groom + implement `feat-license-lifecycle` (PLG-1, `_SPECS/plg-refine.md`)
-- Persist license on redemption (`~/.relay/licenses/`), `relay license add|status|remove`,
-  banner reads store (now at `bin/cli.ts` ~line 384, inside the 6.5 insertion zone), activation
-  ceremony, pack-list premium marks, README free-vs-paid.
-- PLG-S slice: re-gate `/api/data/seed` + `/api/data/clear` on `RELAY_STAGING=true` (both
-  NODE_ENV-gated today → **now actually vanish in prod builds since 0.16.0 ships prod mode**);
-  acceptance = fulfilment simulation (Mode C) in staging.
-- **Staging recipe v1 EXISTS now**: `scripts/npx-prod-smoke.mjs` (pack → clean-dir install →
-  prod launch, 3 cases). Extend it for the fulfilment sim rather than building new harness.
-- Gate during grooming (AskUserQuestion): D4 perpetual-fallback public wording + banner wording.
-- Smoke budget applies (CLAUDE.md). Version note: 0.16.0 is taken by #10; PLG-1 lands 0.17.x
-  (or 0.16.x patches if operator prefers — decide at grooming).
-
-## Then (S3–S6) — PLG program queue (`_SPECS/plg-refine.md` = decision record D1–D7)
-- **S3:** PLG-2a — `/packs` gallery + Settings→License page; absorbs
-  `fix-pack-install-discoverability`. `/frontend-designer` flag. Browser-walkthrough capture.
-- **S4:** PLG-2b — author FIRST premium pack + Naya-path staging run with real-license fixture;
-  Website relay (pricing copy, email rewrite, gating-philosophy page).
+## Then (S4–S6) — PLG program queue (`_SPECS/plg-refine.md` = decision record D1–D7)
+- **S4:** PLG-2b — author FIRST premium pack (critical path — nothing to sell today) + full
+  Naya-path Mode C staging run (real license fixture, loopback + `--hostname` topology);
+  Website relay via `strategy/relay/_RELAY.md` (pricing copy, email rewrite, gating-philosophy page).
 - **S5:** PLG-3 enterprise trust pack (no-phone-home one-liner, data-flow diagram, SBOM +
-  provenance surfacing — emitted per `publish.yml` OIDC; security packet draft).
+  provenance surfacing, security packet draft).
 - **S6+:** PLG-4 growth loops — each operator-gated first.
 - **Anti-patterns fenced in spec §7:** no DB licensing, no CLI upsell banners, no online
-  re-validation, no expiry that disables installed packs.
+  re-validation, no expiry that disables installed packs (D4 is now shipped behavior AND
+  a public promise — README Free-vs-paid + issue #14).
 
-## Held issues #5/#6/#11/#12 — WAITING on customer retest of **0.16.0** (reactive)
-0.16.0 (prod build, no dev-origin gate) likely moots the class — retest asks POSTED on all
-four (2026-07-01). If issues persist on 0.16.0: repro cross-machine (NOT localhost), watch
-pending/blocked `/_next/*` + `/api/*`, check hydration. Triage detail: commit `bf204c24`.
+## Held issues #5/#6/#11/#12 — WAITING on customer retest (reactive)
+Retest asks POSTED on 0.16.0 (2026-07-01); 0.17.0 also live. Prod build (no dev-origin gate)
+likely moots the class. If issues persist: repro cross-machine (NOT localhost) via Mode D
+(seed/clear now work in staging prod-mode under `RELAY_STAGING=true`). Triage detail: `bf204c24`.
 
 ## ICP smoke fixes (remaining; interleave from S4 per spec §6)
 - **P1s:** `fix-workflow-model-preference-propagation` (smoke budget), `fix-dashboard-budget-vs-cost-labeling`,
   `fix-chat-spend-metering-diagnose` (repro 0-rows; code exists). (`fix-pack-install-discoverability`
-  → absorbed into PLG-2.)
+  → absorbed into PLG-2a, see NEXT SESSION.)
 - **P2:** `fix-inbox-checkpoint-realtime`.
 
 ## Known caveats
-- **Pre-existing test failures (NOT regressions):** `router.test.ts` (6), `api-version-window.test.ts` (2),
-  `run-cadence-heatmap`/`settings` validator (2); plus `src/__tests__/e2e/blueprint.test.ts` is
-  environmental (needs running dev server). Verified identical before/after 0.16.0 work.
-- **`next` is now PINNED exactly (16.2.4)** — artifact build must match customer runtime. Bump the
-  pin deliberately with Next upgrades; release smoke covers it. (Was `^16`; changed in #10.)
+- **Pre-existing test failures (NOT regressions), now 8:** `router.test.ts` (6),
+  `run-cadence-heatmap`/`settings` validator (2); plus `src/__tests__/e2e/blueprint.test.ts`
+  is environmental (needs running dev server). (`api-version-window` pair FIXED in `580e553f` —
+  window is now built from `CURRENT_PLUGIN_API_VERSION` in `src/lib/plugins/sdk/types.ts`;
+  bump it + the previous-MINOR literal in `registry.ts` every MINOR release.)
+- **`next` is PINNED exactly (16.2.4)** — artifact build must match customer runtime; bump
+  deliberately with Next upgrades (release smoke covers it).
 - **Next 16 emits `.next/node_modules` symlinks** required at runtime by hashed name; artifact
-  ships a manifest + CLI relinks (junction on win32). See spec Implementation notes + TDR-worthy.
+  ships a manifest + CLI relinks (junction on win32). See #10 spec Implementation notes.
 - **Profiles are file-based, no `agent_profiles` table** (memory `profiles-are-file-based-not-db`).
-- **CLI startup robustness** (memory `cli-startup-robustness`): startup writes non-fatal; bind flags.
+- **CLI startup robustness** (memory `cli-startup-robustness`): startup writes non-fatal; bind flags;
+  the licensed-banner read is fail-open by the same rule.
 
 ## Not-started backlog (pre-existing)
 - **`chore-deprecated-transitive-deps`** (P3) — 7 `npm warn deprecated` on install. Spec written.
-- **`feat-prepublish-tarball-smoke`** — largely SUPERSEDED: publish.yml now packs + installs +
-  smokes the tarball pre-publish. Review the spec; likely close or narrow.
-- **`/relay/` free-vs-paid boundary not in README** — README predates licensing.
+- **`feat-prepublish-tarball-smoke`** — largely SUPERSEDED (publish.yml packs + installs + smokes
+  pre-publish; local arm IS the staging recipe). Review spec; likely close or narrow.
 - **Optional:** npm Publishing → "require 2FA + disallow tokens" now OIDC works.
 - **Micro-chore:** stale `pdfjs-dist` in `serverExternalPackages` (not a dep; flagged in #10 grooming).
 
@@ -67,19 +63,19 @@ pending/blocked `/_next/*` + `/api/*`, check hydration. Triage detail: commit `b
 - **Strategy repo = read/write only** (memory `strategy-repo-readwrite-only`): edit, NEVER commit/push/merge.
 - **Work directly on `main`** — no worktrees/branches unless operator asks (memory `work-on-main-no-worktrees`).
 - **npm publishing via OIDC** (`.github/workflows/publish.yml` on `vX.Y.Z` tag; `docs/RELEASING.md`).
-  Publish is now GATED by the npx prod smoke (artifact build + clean install + 3 launch cases).
+  Publish is GATED by the npx prod smoke — now 4 cases incl. Case L license lifecycle (Mode C).
 - **Smoke-test budget** (CLAUDE.md): runtime-registry-adjacent changes need a real launch smoke.
+- **gh issue/label writes are ALLOWLISTED** in `.claude/settings.local.json` (2026-07-01) — post
+  directly; only home-dir deletes + novel outward-facing commands still draft to `output/`
+  (memory `autonomous-session-permission-gates`).
 - **Check git history for prior art** (memory `check-git-history-for-prior-art`).
 - **Verify field reports before fixing** (memories `verify-walkthrough-findings-before-grooming`,
-  `customer-triage-field-reports-2026-07`): code-verify mechanisms + ask run topology first.
+  `customer-triage-field-reports-2026-07`).
 
 ## Recently shipped (durable in git + memory)
-- **0.16.0** (this session): production build for npx (#10) — `dd11b0d2` + tag `1400741d`;
-  download-on-first-run (`src/lib/desktop/prebuilt-download.ts`, 21 tests TDD), artifact CI
-  (`build-prebuilt-artifact.mjs` + publish.yml gates), e2e smoke (`npx-prod-smoke.mjs`), next
-  pinned 16.2.4, `.next/node_modules` manifest+relink (Windows-safe). Verified from real npm
-  install: downloads GitHub Release artifact, `Mode: production`, / + /chat 200.
-- Prior session: PLG program specced (`_SPECS/plg-refine.md`) · backlog PLG-first ·
-  discoverability spec absorbed into PLG-2 · #10 groomed · specs committed `68c2f52c`.
-- Prior: **0.15.5** (#13 `55ab07a0`, #9+#4 `23845a97`, `bf204c24`) · 0.15.4 compose P0
-  (`b0c1dae6`) · #1 WSL (0.15.2) · `--hostname` (0.15.3).
+- **0.17.0** (this session): license lifecycle core PLG-1 — store + `relay license` verb +
+  licensed banner + ceremony + `[premium]` marks + `RELAY_STAGING` re-gate + README Free-vs-paid;
+  34 unit tests TDD; smoke Case L (Mode C w/ real prod license, D4 proven) gates publish; issue #14.
+  Also: apiVersion window un-staled + scaffold pin bug fixed (`580e553f`).
+- Prior: **0.16.0** prod build for npx (#10) · PLG program specced (`_SPECS/plg-refine.md`) ·
+  0.15.x fix train — see `git log` + beacon `recent[]`.
