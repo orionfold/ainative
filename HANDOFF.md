@@ -4,11 +4,10 @@ _Last updated: 2026-07-01 (pt: S1 DONE — 0.16.0 SHIPPED: production build for 
 npm + GitHub Release artifact verified e2e from a real install. Prior tail: PLG program specced,
 backlog PLG-first — see git + Recently shipped.)_
 
-## ⚠️ OPERATOR FIRST — two actions the session couldn't take (permission-gated)
-1. **Post the v0.16.0 issue updates** — drafted, ready-to-run commands in
-   `output/issue-comments-0.16.0.md`: close #7/#8/#10 (+`shipped` label), retest asks on
-   #5/#6/#11/#12 (per plan: ask on 0.16.0, not 0.15.5). External writes were classifier-blocked.
-2. `rm -rf ~/.relay-isolated` (6.4M throwaway test DB) — delete was classifier-blocked.
+## ⚠️ OPERATOR FIRST — one action the session couldn't take (permission-gated)
+1. `rm -rf ~/.relay-isolated` (6.4M throwaway test DB) — delete was classifier-blocked.
+(v0.16.0 issue updates POSTED on operator go-ahead: #7/#8/#10 closed +`shipped`, retest asks
+on #5/#6/#11/#12.)
 
 ## ▶️ NEXT SESSION (S2, 0.17.x) — groom + implement `feat-license-lifecycle` (PLG-1, `_SPECS/plg-refine.md`)
 - Persist license on redemption (`~/.relay/licenses/`), `relay license add|status|remove`,
@@ -35,8 +34,8 @@ backlog PLG-first — see git + Recently shipped.)_
   re-validation, no expiry that disables installed packs.
 
 ## Held issues #5/#6/#11/#12 — WAITING on customer retest of **0.16.0** (reactive)
-0.16.0 (prod build, no dev-origin gate) likely moots the class — retest asks drafted (see
-OPERATOR FIRST). If issues persist on 0.16.0: repro cross-machine (NOT localhost), watch
+0.16.0 (prod build, no dev-origin gate) likely moots the class — retest asks POSTED on all
+four (2026-07-01). If issues persist on 0.16.0: repro cross-machine (NOT localhost), watch
 pending/blocked `/_next/*` + `/api/*`, check hydration. Triage detail: commit `bf204c24`.
 
 ## ICP smoke fixes (remaining; interleave from S4 per spec §6)

@@ -1,14 +1,13 @@
 {
   "focus": "0.16.0 SHIPPED: npx installs now run a real production build (#10 — download CI-built .next from GitHub Release on first run, next start, loud dev fallback). PLG program is next: S2 = feat-license-lifecycle (PLG-1) per _SPECS/plg-refine.md.",
   "blockers": [
-    "Operator: post drafted v0.16.0 issue updates (output/issue-comments-0.16.0.md — close #7/#8/#10, retest asks #5/#6/#11/#12); external writes were permission-blocked",
     "Operator: rm -rf ~/.relay-isolated (delete was permission-blocked)"
   ],
   "next": [
     "S2 (0.17.x): groom+implement feat-license-lifecycle per PLG-1 (persist license, relay license verb, banner identity at bin/cli.ts ~384, ceremony) + re-gate seed/clear on RELAY_STAGING=true; extend scripts/npx-prod-smoke.mjs as the staging recipe; gate D4 wording + banner wording with operator",
     "S3: PLG-2a /packs gallery + Settings License page (absorbs fix-pack-install-discoverability)",
     "S4: author FIRST premium pack + Naya-path e2e; Website relay (pricing, email, gating philosophy)",
-    "Held #5/#6/#11/#12 reactive — retest asked on 0.16.0 (prod build removes the dev-origin gate)",
+    "Held #5/#6/#11/#12 reactive — retest asks POSTED on 0.16.0 (prod build removes the dev-origin gate); #7/#8/#10 closed shipped",
     "Review feat-prepublish-tarball-smoke spec — largely superseded by the publish.yml smoke gate"
   ],
   "recent": [
