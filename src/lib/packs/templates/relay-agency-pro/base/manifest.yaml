@@ -1,0 +1,120 @@
+id: relay-agency-pro
+version: "0.1.0"
+name: Relay Agency Pro
+description: >
+  The agency operating system on top of the free Relay Agency verbs: a
+  scheduled finance cockpit, row-triggered intake pipelines, a new-business
+  machine, client-safe governance, and a deep CRE renewal engine.
+persona: >
+  An agency operator whose client book should process itself: intake that
+  triggers work, month-end that closes itself, margin visible per client, and
+  agents hardened enough to trust with client data.
+author: Orionfold
+
+profiles:
+  - id: relay-agency-pro--finance-controller
+    source: $AINATIVE_DATA_DIR/profiles/relay-agency-pro--finance-controller/
+  - id: relay-agency-pro--intake-coordinator
+    source: $AINATIVE_DATA_DIR/profiles/relay-agency-pro--intake-coordinator/
+  - id: relay-agency-pro--prospect-researcher
+    source: $AINATIVE_DATA_DIR/profiles/relay-agency-pro--prospect-researcher/
+  - id: relay-agency-pro--proposal-writer
+    source: $AINATIVE_DATA_DIR/profiles/relay-agency-pro--proposal-writer/
+  - id: relay-agency-pro--governance-auditor
+    source: $AINATIVE_DATA_DIR/profiles/relay-agency-pro--governance-auditor/
+  - id: relay-agency-pro--sensitive-client-analyst
+    source: $AINATIVE_DATA_DIR/profiles/relay-agency-pro--sensitive-client-analyst/
+  - id: relay-agency-pro--cre-renewal-analyst
+    source: $AINATIVE_DATA_DIR/profiles/relay-agency-pro--cre-renewal-analyst/
+
+blueprints:
+  - id: relay-agency-pro--month-end-close
+    source: $AINATIVE_DATA_DIR/blueprints/relay-agency-pro--month-end-close.yaml
+  - id: relay-agency-pro--intake-pipeline
+    source: $AINATIVE_DATA_DIR/blueprints/relay-agency-pro--intake-pipeline.yaml
+    trigger:
+      kind: row-insert
+      table: intake
+  - id: relay-agency-pro--new-business
+    source: $AINATIVE_DATA_DIR/blueprints/relay-agency-pro--new-business.yaml
+  - id: relay-agency-pro--client-audit-export
+    source: $AINATIVE_DATA_DIR/blueprints/relay-agency-pro--client-audit-export.yaml
+  - id: relay-agency-pro--cre-renewal-engine
+    source: $AINATIVE_DATA_DIR/blueprints/relay-agency-pro--cre-renewal-engine.yaml
+
+tables:
+  # The engagements ledger: one row per billing/cost line, signed amount
+  # (+billing, -cost), so the ledger kit's inflow/outflow/margin math works
+  # without configuration. The month-end close writes draft invoice lines here.
+  - id: engagements
+    columns: [client, date, category, description, amount, status]
+  # The intake work queue: drop a row, the intake pipeline fires (row-insert
+  # trigger) and routes by `kind` under the named client.
+  - id: intake
+    columns: [client, kind, source, status, notes]
+
+schedules:
+  # Fires the month-end close on the 1st at 06:00 for the month just ended.
+  - id: month-end-close
+    name: Month-end close
+    cron: "0 6 1 * *"
+    runs: relay-agency-pro--month-end-close
+
+view:
+  kit: ledger
+  bindings:
+    hero:
+      table: engagements
+    secondary:
+      - blueprint: relay-agency-pro--month-end-close
+      - blueprint: relay-agency-pro--cre-renewal-engine
+    runs:
+      blueprint: relay-agency-pro--month-end-close
+    kpis:
+      - id: billed-mtd
+        label: Billed (MTD)
+        source:
+          kind: tableSumWindowed
+          table: engagements
+          column: amount
+          sign: positive
+          window: mtd
+        format: currency
+      - id: costs-mtd
+        label: AI + costs (MTD)
+        source:
+          kind: tableSumWindowed
+          table: engagements
+          column: amount
+          sign: negative
+          window: mtd
+        format: currency
+      - id: margin-mtd
+        label: Margin (MTD)
+        source:
+          kind: ratio
+          numerator:
+            kind: tableSumWindowed
+            table: engagements
+            column: amount
+            window: mtd
+          denominator:
+            kind: tableSumWindowed
+            table: engagements
+            column: amount
+            sign: positive
+            window: mtd
+        format: percent
+      - id: close-runs
+        label: Close runs (30d)
+        source:
+          kind: blueprintRunCount
+          blueprint: relay-agency-pro--month-end-close
+          window: 30d
+        format: int
+      - id: next-close
+        label: Next close
+        source:
+          kind: scheduleNextFire
+          schedule: month-end-close
+        format: relative

@@ -1,0 +1,21 @@
+id: relay-agency-pro--sensitive-client-analyst
+name: Sensitive-Client Analyst
+version: "1.0.0"
+domain: work
+tags: [sensitive-data, local-only, donor-pii, confidential, ollama]
+supportedRuntimes: [ollama]
+# Local-only by design: sensitive-client work (donor PII, confidential
+# financials) never leaves the machine. Accept the quality trade-off; route
+# work needing frontier quality to a non-sensitive profile with the data
+# minimized first.
+preferredRuntime: ollama
+allowedTools:
+  - Read
+  - Grep
+  - Glob
+  - Write
+canUseToolPolicy:
+  autoApprove: [Read, Grep, Glob]
+  autoDeny: [Bash, WebSearch, WebFetch]
+maxTurns: 20
+author: Orionfold

@@ -1,0 +1,53 @@
+id: relay-agency-pro--client-audit-export
+name: Client Audit Export
+description: >
+  The trust instrument: assemble a client's runs, spend, and approval trail
+  for a period into a client-ready governance report — failures included,
+  nothing estimated, one client per export.
+version: "1.0.0"
+domain: work
+tags: [governance, audit, client-trust, spend-trail, compliance]
+pattern: checkpoint
+difficulty: beginner
+estimatedDuration: "15-30 min"
+author: Orionfold
+variables:
+  - id: client
+    type: text
+    label: Client
+    description: The client the export covers (exactly one)
+    required: true
+    placeholder: Meridian CRE
+  - id: period
+    type: text
+    label: Period
+    description: The period the export covers
+    required: false
+    default: "the last full month"
+steps:
+  - name: Assemble the audit records
+    profileId: relay-agency-pro--governance-auditor
+    requiresApproval: false
+    promptTemplate: >
+      Assemble the audit export for {{client}} covering {{period}} per your
+      methodology: the run log (every attributable run including failures
+      and pending approvals), the spend trail from the engagements ledger
+      reconciled against the runs (unreconciled lines listed as such), the
+      approval trail, and the governance posture of every profile that
+      touched this client's work. Records only — a missing record is
+      reported as a gap, never reconstructed.
+    expectedOutput: >
+      The four audit sections with totals, every line traceable to a record.
+  - name: Produce the client-ready report
+    profileId: relay-agency-pro--governance-auditor
+    requiresApproval: true
+    promptTemplate: >
+      Format the assembled records as the client-ready export for {{client}}
+      ({{period}}): cover line with the "no figures estimated" statement,
+      the four sections each with a total row, and the exceptions section
+      (even when empty). Redact by default — no internal prompts, no other
+      clients, no agency margin. A human reviews this before it leaves the
+      agency.
+    expectedOutput: >
+      A client-ready governance report, redacted by default, exceptions
+      explicit.

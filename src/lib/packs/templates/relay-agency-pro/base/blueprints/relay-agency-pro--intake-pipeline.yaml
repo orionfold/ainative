@@ -1,0 +1,69 @@
+id: relay-agency-pro--intake-pipeline
+name: Intake Pipeline
+description: >
+  Fires automatically when a row lands in the intake table (row-insert
+  trigger) and routes the work by kind — lease abstraction, grant intake,
+  bookkeeping entry, or new business — under the right client, then updates
+  the row's status so the queue stays honest.
+version: "1.0.0"
+domain: work
+tags: [intake, routing, triggered, work-queue]
+pattern: pipeline
+difficulty: beginner
+estimatedDuration: "10-25 min"
+author: Orionfold
+# Fired by the row-insert trigger on the intake table: each variable defaults
+# from the inserted row's columns.
+variables:
+  - id: client
+    type: text
+    label: Client
+    description: The client this intake belongs to
+    required: false
+    default: "{{row.client}}"
+  - id: kind
+    type: text
+    label: Kind
+    description: "One of: lease-abstraction, grant-intake, bookkeeping-entry, new-business, other"
+    required: false
+    default: "{{row.kind}}"
+  - id: source
+    type: text
+    label: Source
+    description: Where the work arrived from
+    required: false
+    default: "{{row.source}}"
+  - id: notes
+    type: textarea
+    label: Notes
+    description: Anything attached to the intake row
+    required: false
+    default: "{{row.notes}}"
+steps:
+  - name: Route and execute the intake
+    profileId: relay-agency-pro--intake-coordinator
+    requiresApproval: false
+    promptTemplate: >
+      A new intake row arrived: client "{{client}}", kind "{{kind}}", source
+      "{{source}}", notes: {{notes}}. Execute your routing procedure for this
+      kind exactly as your methodology defines it: lease-abstraction →
+      intake-grade lease abstract flagged for the deep renewal pass;
+      grant-intake → funder/deadline/eligibility capture with a go/no-go;
+      bookkeeping-entry → a normalized signed ledger-line proposal;
+      new-business → prospect summary recommending the new-business
+      blueprint; anything else or an unknown client → needs-triage with a
+      reason. Do the work, do not just classify it.
+    expectedOutput: >
+      The kind-appropriate deliverable, produced under the correct client.
+  - name: Update the queue
+    profileId: relay-agency-pro--intake-coordinator
+    requiresApproval: false
+    promptTemplate: >
+      Update the intake row for client "{{client}}" (kind "{{kind}}", source
+      "{{source}}") using the injected table tools: set status to "done" if
+      the work completed, or "needs-triage" with the reason in notes if it
+      could not. Write a one-line summary of what was produced into the
+      row's notes. The queue must reflect reality when you finish.
+    expectedOutput: >
+      The intake row's status and notes updated to match what actually
+      happened.

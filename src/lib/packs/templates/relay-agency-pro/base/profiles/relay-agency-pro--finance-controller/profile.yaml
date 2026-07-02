@@ -1,0 +1,17 @@
+id: relay-agency-pro--finance-controller
+name: Finance Controller
+version: "1.0.0"
+domain: work
+tags: [finance, month-end-close, invoicing, margin, cost-attribution]
+supportedRuntimes: [claude-code, anthropic-direct, openai-direct, ollama]
+preferredRuntime: anthropic-direct
+allowedTools:
+  - Read
+  - Grep
+  - Glob
+  - Write
+canUseToolPolicy:
+  autoApprove: [Read, Grep, Glob]
+  autoDeny: [Bash]
+maxTurns: 30
+author: Orionfold
