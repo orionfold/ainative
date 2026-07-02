@@ -1,4 +1,5 @@
 // src/app/api/plugins/reload/__tests__/route.test.ts
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -22,7 +23,7 @@ describe("POST /api/plugins/reload", () => {
     fs.mkdirSync(path.join(tmpDir, "plugins", "demo"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, "plugins", "demo", "plugin.yaml"),
-      yaml.dump({ id: "demo", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" })
+      yaml.dump({ id: "demo", version: "0.1.0", apiVersion: CURRENT_PLUGIN_API_VERSION, kind: "primitives-bundle" })
     );
     const res = await POST();
     const body = await res.json();

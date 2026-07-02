@@ -1,4 +1,5 @@
 // src/lib/plugins/__tests__/install-path-parity.test.ts
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -11,7 +12,7 @@ function setupDataDir(prefix: string): string {
   fs.mkdirSync(path.join(dir, "plugins", "demo"), { recursive: true });
   fs.writeFileSync(
     path.join(dir, "plugins", "demo", "plugin.yaml"),
-    yaml.dump({ id: "demo", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" })
+    yaml.dump({ id: "demo", version: "0.1.0", apiVersion: CURRENT_PLUGIN_API_VERSION, kind: "primitives-bundle" })
   );
   // T13: extend fixture with a schedules/ dir to exercise M2 schedule loading.
   fs.mkdirSync(path.join(dir, "plugins", "demo", "schedules"), { recursive: true });

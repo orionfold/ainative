@@ -1,3 +1,4 @@
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect } from "vitest";
 import { PluginManifestSchema } from "../sdk/types";
 
@@ -5,7 +6,7 @@ describe("PluginManifestSchema", () => {
   const valid = {
     id: "finance-pack",
     version: "0.1.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "primitives-bundle",
   };
 

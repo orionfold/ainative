@@ -1,4 +1,5 @@
 // src/lib/plugins/__tests__/reload.test.ts
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -11,7 +12,7 @@ function writePlugin(id: string, version: string) {
   const dir = path.join(tmpDir, "plugins", id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "plugin.yaml"), yaml.dump({
-    id, version, apiVersion: "0.17", kind: "primitives-bundle",
+    id, version, apiVersion: CURRENT_PLUGIN_API_VERSION, kind: "primitives-bundle",
   }));
 }
 

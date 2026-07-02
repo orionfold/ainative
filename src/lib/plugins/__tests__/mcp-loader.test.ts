@@ -10,6 +10,7 @@
  * Uses real fs (tmpdir) — no mocked fs. Pattern matches T2 tests.
  */
 
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -59,7 +60,7 @@ function writePluginYaml(pluginId: string, overrides: Record<string, unknown> = 
   const manifest: Record<string, unknown> = {
     id: pluginId,
     version: "1.0.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "chat-tools",
     capabilities: ["net"],
     ...overrides,
@@ -309,7 +310,7 @@ describe("T13 — safe-mode (RELAY_SAFE_MODE=true) with visible disabled plugins
       [
         "id: beta",
         'version: "1.0.0"',
-        'apiVersion: "0.17"',
+        `apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`,
         "kind: primitives-bundle",
       ].join("\n") + "\n",
     );

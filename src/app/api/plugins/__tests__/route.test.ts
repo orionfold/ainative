@@ -1,4 +1,5 @@
 // src/app/api/plugins/__tests__/route.test.ts
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -14,7 +15,7 @@ describe("GET /api/plugins", () => {
     fs.mkdirSync(path.join(tmpDir, "plugins", "demo"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, "plugins", "demo", "plugin.yaml"),
-      yaml.dump({ id: "demo", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" })
+      yaml.dump({ id: "demo", version: "0.1.0", apiVersion: CURRENT_PLUGIN_API_VERSION, kind: "primitives-bundle" })
     );
     process.env.RELAY_DATA_DIR = tmpDir;
     // Reset registry cache so the env-var change takes effect for the first scan.

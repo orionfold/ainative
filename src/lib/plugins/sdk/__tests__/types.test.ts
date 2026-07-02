@@ -1,3 +1,4 @@
+import { CURRENT_PLUGIN_API_VERSION } from "../types";
 import { describe, it, expect } from "vitest";
 import { PluginManifestSchema, PluginManifest } from "../types";
 
@@ -7,7 +8,7 @@ describe("PluginManifestSchema — discriminated union", () => {
   const validKind5 = {
     id: "finance-pack",
     version: "0.1.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "primitives-bundle" as const,
   };
 
@@ -25,7 +26,7 @@ describe("PluginManifestSchema — discriminated union", () => {
   const validKind1 = {
     id: "gmail-triage",
     version: "1.0.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "chat-tools" as const,
   };
 

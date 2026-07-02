@@ -11,6 +11,7 @@
  * not fixed sleeps.
  */
 
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -477,7 +478,7 @@ describe("14. Loader integration", () => {
     const yamlContent = [
       `id: ${pluginId}`,
       `version: "1.0.0"`,
-      `apiVersion: "0.17"`,
+      `apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`,
       `kind: chat-tools`,
       `capabilities:`,
       `  - net`,
@@ -544,7 +545,7 @@ process.stdin.resume();
     const yamlContent = [
       `id: ${pluginId}`,
       `version: "1.0.0"`,
-      `apiVersion: "0.17"`,
+      `apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`,
       `kind: chat-tools`,
       `capabilities:`,
       `  - net`,

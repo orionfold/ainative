@@ -1,3 +1,4 @@
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -16,7 +17,7 @@ function writePlugin(id: string) {
     yaml.dump({
       id,
       version: "0.1.0",
-      apiVersion: "0.17",
+      apiVersion: CURRENT_PLUGIN_API_VERSION,
       kind: "primitives-bundle",
     })
   );
@@ -30,7 +31,7 @@ function writeKind1Plugin(id: string) {
     [
       `id: ${id}`,
       'version: "1.0.0"',
-      'apiVersion: "0.17"',
+      `apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`,
       "kind: chat-tools",
       "capabilities:",
       "  - net",
@@ -83,7 +84,7 @@ describe("plugin chat tools", () => {
     fs.mkdirSync(path.join(pluginDir, "schedules"), { recursive: true });
     fs.writeFileSync(
       path.join(pluginDir, "plugin.yaml"),
-      yaml.dump({ id: "sched-test", version: "0.1.0", apiVersion: "0.17", kind: "primitives-bundle" })
+      yaml.dump({ id: "sched-test", version: "0.1.0", apiVersion: CURRENT_PLUGIN_API_VERSION, kind: "primitives-bundle" })
     );
     fs.writeFileSync(
       path.join(pluginDir, "schedules", "weekly-report.yaml"),

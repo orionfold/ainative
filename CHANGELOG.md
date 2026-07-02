@@ -4,6 +4,23 @@
 
 This project was formerly published as `stagent` on npm and hosted at `github.com/manavsehgal/stagent`. As of 2026-04-17 it is `ainative`. The old GitHub URL redirects permanently; `stagent` on npm is deprecated with an upgrade pointer to `ainative`.
 
+## [0.19.0] — 2026-07-01
+
+### Added
+
+- **Relay Agency Pro — the first premium pack.** The free Relay Agency pack runs a workflow; Agency Pro runs your agency. Five chapters, installable with `relay pack add relay-agency-pro` (or one click from Compose → Packs) once your license is redeemed:
+  - **Finance cockpit** — an engagements ledger with a margin dashboard (billed, costs, and margin month-to-date) and a month-end close that runs itself: a scheduled agent rolls up every client's month, drafts the invoice lines, and flags margin drops before you've had coffee on the 1st.
+  - **Intake pipelines** — drop a row into the intake table and the right client workflow fires by itself: lease abstraction, grant intake, bookkeeping entry, or new business, each routed under the right client with the queue status kept honest.
+  - **New-business machine** — prospect research with citations, a capability pitch, a scoped proposal with visible assumptions, a draft engagement letter, and a staged kickoff so a won deal becomes an operating client without a dropped handoff.
+  - **Client-safe governance** — every Pro agent ships hardened (explicit tool allowlist, shell denied, bounded turns), plus a per-client audit export: runs, spend, and approval trail, client-ready, failures included. A local-only analyst profile (Ollama) handles donor-PII and confidential material that must never leave the machine.
+  - **CRE renewal engine** — deep lease abstraction (critical dates, escalations, CAM economics, option mechanics), renewal-decision analysis with the do-nothing cost, normalized comps, a draft LOI, and a portfolio rent roll sorted so nothing expires unnoticed. The nonprofit deep chapter arrives in v0.2.0 as the first included update.
+- **Packs can now schedule work and react to your tables — free for everyone.** Two engine gaps found while building Agency Pro are fixed for every pack, free or premium: a pack that declares a row-insert trigger now actually fires when you add a row (the authored table reference is rewritten to the real table at install), and a pack that declares a schedule now registers a real schedule you can see on the Schedules page (re-installing never resets its state; uninstalling cleans it up; the dashboard's "next run" tile reads it live). Packs installed from the running app are usable immediately — no restart needed.
+
+### Changed
+
+- `relay pack add` now reports registered schedules alongside tables, profiles, and blueprints, so nothing a pack materializes is invisible.
+- The publish smoke gate now exercises the real premium pack end-to-end: unlicensed refusal, license redemption, no-flag install, and the packs-stay-installed promise after license removal.
+
 ## [0.18.0] — 2026-07-01
 
 ### Added

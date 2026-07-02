@@ -7,6 +7,7 @@
  * behavior when multiple signals coexist (any single self-signal wins).
  */
 
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect } from "vitest";
 import path from "node:path";
 import os from "node:os";
@@ -21,7 +22,7 @@ function chatToolsManifest(overrides: Partial<PluginManifest> = {}): PluginManif
   return {
     id: "test-plugin",
     version: "0.1.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "chat-tools",
     capabilities: ["net"],
     ...overrides,
@@ -32,7 +33,7 @@ function primitivesBundleManifest(overrides: Partial<PluginManifest> = {}): Plug
   return {
     id: "test-bundle",
     version: "0.1.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "primitives-bundle",
     ...overrides,
   } as PluginManifest;
@@ -96,7 +97,7 @@ describe("classifyPluginTrust — self-extension signals", () => {
     const manifest = {
       id: "test-plugin",
       version: "0.1.0",
-      apiVersion: "0.17",
+      apiVersion: CURRENT_PLUGIN_API_VERSION,
       kind: "chat-tools",
     } as PluginManifest;
     expect(classifyPluginTrust(manifest, foreignRoot)).toBe("self");

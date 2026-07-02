@@ -5,6 +5,7 @@
  * Uses real fs (tmpdir) — no mocked fs.
  */
 
+import { CURRENT_PLUGIN_API_VERSION } from "@/lib/plugins/sdk/types";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
@@ -60,7 +61,7 @@ function makeYaml(overrides: Record<string, unknown> = {}): string {
   const base: Record<string, unknown> = {
     id: "gmail-triage",
     version: "1.0.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "chat-tools",
     capabilities: ["net"],
     ...overrides,
@@ -322,7 +323,7 @@ describe("capability-check — isCapabilityAccepted self-extension bypass (TDR-0
   const chatToolsManifest = (overrides: Record<string, unknown> = {}) => ({
     id: "test-plugin",
     version: "0.1.0",
-    apiVersion: "0.17",
+    apiVersion: CURRENT_PLUGIN_API_VERSION,
     kind: "chat-tools" as const,
     capabilities: ["net"],
     ...overrides,
@@ -603,7 +604,7 @@ describe("capability-check — resolvePluginToolApproval", () => {
       [
         "id: echo",
         'version: "1.0.0"',
-        'apiVersion: "0.17"',
+        `apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`,
         "kind: chat-tools",
         "capabilities:",
         "  - net",
@@ -974,7 +975,7 @@ describe("capability-check — grantPluginCapabilities (T15)", () => {
     const manifest: Record<string, unknown> = {
       id,
       version: "1.0.0",
-      apiVersion: "0.17",
+      apiVersion: CURRENT_PLUGIN_API_VERSION,
       kind: "chat-tools",
       capabilities: ["net"],
       ...overrides,
@@ -1011,7 +1012,7 @@ describe("capability-check — grantPluginCapabilities (T15)", () => {
       [
         "id: kind5-bundle",
         'version: "1.0.0"',
-        'apiVersion: "0.17"',
+        `apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`,
         "kind: primitives-bundle",
         "",
       ].join("\n"),
