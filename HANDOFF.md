@@ -1,33 +1,33 @@
 # Relay — HANDOFF
 
-_Last updated: 2026-07-01 (pt: S4 — 0.19.0 SHIPPED to npm: relay-agency-pro (first premium
-pack, PLG-2b) + engine fixes 0a/0b free; full Mode C A/B/L/C green from tarball (Case L now
-exercises the REAL pack); issue #16; Website asks posted on the relay channel. Prior tail:
-S1–S3.5 = 0.16.0→0.18.0 + grooming — see git log + beacon recent.)_
+_Last updated: 2026-07-01 (pt: S5 — 0.20.0 SHIPPED to npm: the enterprise trust pack (PLG-3);
+docs/trust/ ×5 + SECURITY.md + CycloneDX SBOM per release; issue #17; Website later-3 landed
+D2/D4/D5 (promise page LIVE, linked from README); later-4 posted with the 2 remaining Website
+asks. Prior tail: S1–S4 = 0.16.0→0.19.0 — see git log + beacon recent.)_
 
-## ▶️ NEXT SESSION (S5) — PLG-3 enterprise trust pack
-Per `_SPECS/plg-refine.md` PLG-3 (mostly docs + Website): (1) no-phone-home one-liner +
-verifier source pointer prominent in README/site; (2) agent→model-API data-flow diagram
-one-pager; (3) verify + surface npm provenance (publish.yml already emits) + CycloneDX SBOM
-per release + pinned-version install docs; (4) plain-language license terms page (Website);
-(5) invoice/PO + MSA lane on pricing page (Website); (6) security-packet draft; (7) continuity
-statement. **Acceptance: every §1 evaluator question answerable by a linkable artifact.**
-- ICP P1s interleave as capacity allows (see below).
-- **Check the Website relay channel** (`strategy/relay/_RELAY.md`) for replies to the
-  2026-07-01 later-2 asks (D4 pricing copy — needs operator confirm on wording; fulfilment
-  email = ONE command + keep-this-file; D5 gating-philosophy page). README Free-vs-Paid
-  should link the pages once they exist.
+## ⚠️ OPERATOR ACTIONS (blocking small pieces of PLG-3)
+1. **Enable private vulnerability reporting** on github.com/orionfold/relay (Settings →
+   Advanced Security). SECURITY.md's "report privately" link 404s until this is on; the API
+   PUT was refused (token lacks admin scope) — it's a one-click UI toggle.
+2. **Confirm the sales-contact address** for the invoice/PO + MSA lane on orionfold.com/relay/
+   pricing — Website ask (2) in later-4 is gated on it (don't invent an unmonitored mailbox).
 
-## Then (S6+) — PLG-4 growth loops — each operator-gated first (AskUserQuestion before build)
-- Agency Pro **v0.2.0 = nonprofit deep chapter** — deliberately the first PAID update; it
-  must exercise the pack-update path the D4 "renewal buys updates" pitch depends on. The
+## ▶️ NEXT SESSION (S6) — PLG-4 growth loops (each operator-gated: AskUserQuestion BEFORE build)
+Per `_SPECS/plg-refine.md` PLG-4: free registration key tier · pack-scoped reverse trial ·
+founding-supporter identity · renewal value-recap. Each needs its own groomed spec + gate.
+- **Agency Pro v0.2.0 = nonprofit deep chapter** — deliberately the first PAID update; must
+  exercise the pack-UPDATE workflow the D4 "renewal buys updates" pitch depends on. The
   `overrides/` layer exists; the update *workflow* is the open design work.
-- **Anti-patterns fenced in spec §7:** no DB licensing, no CLI upsell banners, no online
+- **Check the relay channel** for Website replies to later-4: (1) license-terms link on
+  /relay/ (canonical text = `docs/trust/license-terms.md`), (2) MSA lane (needs operator
+  contact, above). PLG-3 acceptance is met repo-side; these two finish the Website side.
+- ICP P1s interleave as capacity allows (below).
+- **Anti-patterns stay fenced (spec §7):** no DB licensing, no CLI upsell banners, no online
   re-validation, no expiry that disables installed packs (D4 = shipped behavior AND public
-  promise — README, issues #14/#15/#16).
+  promise — README, issues #14–#17, orionfold.com/promise/).
 
 ## Held issues #5/#6/#11/#12 — WAITING on customer retest (reactive)
-Retest asks POSTED on 0.16.0 (2026-07-01); 0.17–0.19 also live. Prod build likely moots the
+Retest asks POSTED on 0.16.0 (2026-07-01); 0.17–0.20 also live. Prod build likely moots the
 class. If they persist: repro cross-machine (NOT localhost) via Mode D. Triage: `bf204c24`.
 
 ## ICP smoke fixes (remaining; interleave)
@@ -36,10 +36,15 @@ class. If they persist: repro cross-machine (NOT localhost) via Mode D. Triage: 
 - **P2:** `fix-inbox-checkpoint-realtime`.
 
 ## Known caveats
-- **apiVersion window**: done IN the 0.19.0 release commit for the first time (`62014e56`);
-  staleness class structurally fixed (tests derive from `CURRENT_PLUGIN_API_VERSION`; the
-  one manual site left = `examples/*/plugin.yaml`, and the plugin suite fails loudly if
-  missed). Memory updated.
+- **apiVersion window**: bumped IN the release commit again (0.20 window in `77613a6c`);
+  tests derive from `CURRENT_PLUGIN_API_VERSION`; the one manual site = `examples/*/plugin.yaml`
+  (under `src/lib/plugins/examples/`), and the plugin suite fails loudly if missed.
+- **Manual `git tag` is LIGHTWEIGHT and `--follow-tags` skips it** → CI never fires. Push the
+  tag explicitly or use `git tag -a` (memory `release-and-issue-conventions`; hit on 0.20.0).
+- **docs/index.md + docs/features|journeys|use-cases are GITIGNORED** (generated corpus,
+  local-only). Public docs = README + SECURITY.md + docs/trust/ + docs/RELEASING.md +
+  docs/plugin-security.md. Trust-doc claims must stay code-true — data-flow.md documents the
+  full egress inventory; re-verify before adding any new outbound call.
 - **Pre-existing test failures (NOT regressions), 8:** `router.test.ts` (6),
   `run-cadence-heatmap`/`settings` validator (2); plus `src/__tests__/e2e/blueprint.test.ts`
   is environmental (needs running dev server).
@@ -65,21 +70,18 @@ class. If they persist: repro cross-machine (NOT localhost) via Mode D. Triage: 
 - **Strategy repo = read/write only** (memory `strategy-repo-readwrite-only`): edit, NEVER commit/push/merge.
 - **Work directly on `main`** — no worktrees/branches unless operator asks (memory `work-on-main-no-worktrees`).
 - **npm publishing via OIDC** (`.github/workflows/publish.yml` on `vX.Y.Z` tag; `docs/RELEASING.md`).
-  Publish GATED by the npx prod smoke — **Case L now exercises the REAL relay-agency-pro**
-  (unlicensed refusal → redeem → no-flag install with primitive counts → [premium] → D4).
+  Publish GATED by the npx prod smoke (Case L exercises the REAL relay-agency-pro). Every
+  release now also attaches a **CycloneDX SBOM** to the GitHub Release.
 - **Smoke-test budget** (CLAUDE.md): runtime-registry-adjacent changes need a real launch smoke.
-  It paid for itself this session (caught the invalid blueprint enum + the warm-cache gap).
 - **gh issue/label writes are ALLOWLISTED** (memory `autonomous-session-permission-gates`).
 - **Check git history for prior art**; **verify field reports before fixing** (memories).
 
 ## Recently shipped (durable in git + memory)
-- **0.19.0** (this session): relay-agency-pro first premium pack (5 chapters, standalone,
-  hardened profiles, CRE deep SKILL.md; nonprofit teased for v0.2.0) + free engine fixes:
-  pack trigger-table rewrite (0a), manifest schedules → real schedule rows with composite
-  `app:<id>:<sched>` ids + fire-path blueprint dispatch + delete-cascade sweep (0b), warm
-  blueprint-cache invalidation on install. 12 new tests; live dev smoke (trigger fired a real
-  workflow); full Mode C tarball smoke A/B/L/C green; locked card on /packs verified
-  ($499/year + Get license → orionfold.com/relay/). npm latest=0.19.0; issue #16;
-  premium-fixture protocol retired (real template renders all locked states).
-- Prior: **0.18.0** PLG-2a graduation surface (#15) · **0.17.0** license lifecycle (#14) ·
-  **0.16.0** prod build for npx (#10) — see `git log` + beacon `recent[]`.
+- **0.20.0** (this session): PLG-3 enterprise trust pack — `docs/trust/` (data-flow disclosure
+  backed by a code-verified egress inventory; security packet; supply-chain w/ provenance
+  verified live; license-terms canonical text; continuity) + SECURITY.md + SBOM per release +
+  README trust surface + promise/storefront links; issue #17. Website later-3 landed all
+  later-2 asks (fulfilment email DEPLOYED, D4 verbatim, orionfold.com/promise/ LIVE).
+- Prior: **0.19.0** relay-agency-pro first premium pack (#16) · **0.18.0** graduation surface
+  (#15) · **0.17.0** license lifecycle (#14) · **0.16.0** prod build for npx (#10) — see
+  `git log` + beacon `recent[]`.

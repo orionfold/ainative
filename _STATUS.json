@@ -1,24 +1,28 @@
 {
-  "focus": "0.19.0 SHIPPED (62014e56, npm latest): relay-agency-pro — the first premium pack (PLG-2b) — plus free engine fixes 0a/0b. The conversion funnel now has a real numerator. S5 = PLG-3 enterprise trust pack; watch the Website relay channel for the D4/D5/email replies.",
-  "blockers": [],
+  "focus": "0.20.0 SHIPPED (77613a6c, npm latest, first SBOM on the release): PLG-3 enterprise trust pack — every spec-§1 evaluator question now has a linkable, code-linked artifact (docs/trust/ ×5 + SECURITY.md). Website later-3 landed D2/D4/D5 (promise page live, README linked). S6 = PLG-4 growth loops, operator-gated each.",
+  "blockers": [
+    "OPERATOR: enable private vulnerability reporting on orionfold/relay (SECURITY.md advisory link 404s until the one-click toggle; API PUT refused — token lacks admin scope)",
+    "OPERATOR: confirm sales-contact address for the invoice/PO+MSA lane — Website later-4 ask (2) is gated on it"
+  ],
   "next": [
-    "S5: PLG-3 enterprise trust pack — no-phone-home one-liner, data-flow diagram, SBOM + provenance surfacing, license terms page (Website), security packet; acceptance = every evaluator question linkable",
-    "Check strategy/relay/_RELAY.md for Website replies (D4 pricing copy needs OPERATOR CONFIRM on wording; fulfilment email ONE-command rewrite; D5 gating-philosophy page); link from README Free-vs-Paid when live",
-    "S6+: PLG-4 growth loops, operator-gated each; Agency Pro v0.2.0 = nonprofit deep chapter, must exercise the pack-UPDATE workflow (D4 renewal pitch depends on it)",
+    "S6: PLG-4 growth loops per _SPECS/plg-refine.md — free registration key tier, pack-scoped reverse trial, founding-supporter identity, renewal value-recap; EACH operator-gated (AskUserQuestion before build)",
+    "Agency Pro v0.2.0 nonprofit deep chapter — the first PAID update; must exercise the pack-UPDATE workflow (open design work; D4 renewal pitch depends on it)",
+    "Check strategy/relay/_RELAY.md for Website replies to later-4: license-terms link on /relay/ + MSA lane",
     "ICP P1s interleave: fix-workflow-model-preference-propagation (smoke budget), fix-dashboard-budget-vs-cost-labeling, fix-chat-spend-metering-diagnose",
-    "Held #5/#6/#11/#12 reactive — retest asks live; 0.16–0.19 all shipped since"
+    "Held #5/#6/#11/#12 reactive — retest asks live; 0.16–0.20 all shipped since"
   ],
   "recent": [
-    "0.19.0 shipped + published (OIDC, CI smoke green): relay-agency-pro premium pack — 5 chapters (finance cockpit w/ scheduled month-end close + ledger KPIs, intake row-insert pipelines, new-business machine, hardened governance + audit export + ollama sensitive-client profile, CRE renewal deep chapter); $499/year, orionfold.com/relay; issue #16",
-    "Engine fixes 0a/0b shipped FREE (D5): pack trigger.table rewritten to real UUID at install; manifest schedules registered as real rows (app:<id>:<sched> composite, state-preserving upsert, fire-path dispatches the runs blueprint, delete-cascade sweeps); + warm blueprint-cache invalidation on install (no-restart installs)",
-    "Smoke budget paid off: live dev smoke caught invalid pattern enum (registry skips invalid content silently) + the warm-cache gap; both fixed with regression tests; publish smoke Case L now exercises the REAL pack incl. unlicensed refusal",
-    "apiVersion window bumped IN the release commit for the first time; staleness class structurally fixed (17 test files now derive from CURRENT_PLUGIN_API_VERSION; examples/*/plugin.yaml is the one manual site, fails loudly)",
-    "Website asks posted (strategy/relay/_RELAY.md later-2): D4 perpetual-fallback pricing copy (operator confirm), fulfilment email = ONE command + keep-this-file, D5 gating-philosophy page — with the real pack name + final unlock verb"
+    "0.20.0 shipped + published (OIDC, CI smoke green): docs/trust/ — data-flow disclosure (code-verified egress inventory: only always-on call for an npx customer is the sha256-verified build download; no telemetry/license-server confirmed), security packet, supply-chain, license-terms (canonical for the Website terms page), continuity; SECURITY.md; issue #17",
+    "CycloneDX SBOM per release: publish.yml generates + attaches orionfold-relay-<v>.sbom.cdx.json (verified on the v0.20.0 release: CycloneDX 1.5, 491 prod components); npm provenance verified live against the registry attestation (SLSA v1, npm audit signatures)",
+    "Website later-3 landed ALL later-2 asks: fulfilment email rewritten + DEPLOYED (one hero command, keep-this-file, D4 verbatim), D4 pricing copy verbatim on /relay/, gating-philosophy page LIVE at orionfold.com/promise/ — both URLs now linked from README Free-vs-Paid (4b121617)",
+    "later-4 posted on the relay channel: keeps the $149 renewal price line (factual catalog line, not promise text); 2 remaining asks = license-terms link on /relay/ + invoice/PO+MSA lane (operator contact needed)",
+    "Release-mechanics gotcha memorized: manual git tag is lightweight and --follow-tags skips it — push the tag explicitly or tag -a (hit on 0.20.0, tag pushed explicitly, CI fired)"
   ],
   "metrics": {
-    "released": "0.19.0",
+    "released": "0.20.0",
     "premium_packs": 1,
-    "npm_tarball": "1.4 MB (0.17.0 measurement; publish guard <10 MB passed for 0.19.0, not re-read)",
+    "sbom_components": "491 prod deps (CycloneDX 1.5, measured this session)",
+    "npm_tarball": "1.4 MB (0.17.0 measurement; publish guard <10 MB passed for 0.20.0, not re-read)",
     "prod_artifact": "~35.5 MB gz (0.16.0 measurement, not re-read)"
   }
 }
