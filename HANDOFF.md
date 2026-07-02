@@ -1,26 +1,22 @@
 # Relay — HANDOFF
 
-_Last updated: 2026-07-02 (pt: S6-leg-1 — relay channel checked, NO Website replies to
-later-4/later-5 yet; operator gated S6 focus = Agency Pro v0.2.0 + pack-update workflow;
-spec WRITTEN: features/feat-pack-update-workflow.md, both decisions resolved
-(backup-then-overwrite; /clear → implement fresh). Prior tail: S1–S5 = 0.16.0→0.20.0 —
-see git log + beacon recent.)_
+_Last updated: 2026-07-02 (pt: S6 wrap — 0.21.0 SHIPPED: pack-update workflow + Agency Pro
+v0.2.0 nonprofit chapter, the first paid update (issue #18); Website later-6/later-7 closed
+later-4/later-5 (license-terms link + MSA lane + Security & trust row live on /relay/).
+Prior tail: S1–S5 = 0.16.0→0.20.0 — see git log + beacon recent.)_
 
-## ▶️ NEXT SESSION (S6 leg 2) — IMPLEMENT features/feat-pack-update-workflow.md
-Spec is self-contained (machinery map + resolved decisions inline). Slices: install-state
-sidecar → `pack update` verb + gate + backup-then-overwrite → list//packs/API surfaces →
-Agency Pro v0.2.0 nonprofit deep chapter → D4 never-re-lock proof + real-launch smoke
-(schedules-installer chain is runtime-adjacent, CLAUDE.md budget). Release = 0.21.0 minor
-→ apiVersion window bump IN the version commit (memory).
-- **Relay channel: WAITING on Website** for later-4/later-5 (license-terms link on /relay/,
-  MSA lane w/ manav@orionfold.com) — checked 2026-07-01, no reply; re-check at start.
-- **PLG-4 loops queued behind this, each still operator-gated** (reverse trial has open
-  tension with the public never-re-lock promise; renewal value-recap becomes honest only
-  once v0.2.0 exists — which this work creates).
-- ICP P1s interleave as capacity allows (below).
-- **Anti-patterns stay fenced (spec §7):** no DB licensing, no CLI upsell banners, no online
-  re-validation, no expiry that disables installed packs (D4 = shipped behavior AND public
-  promise — README, issues #14–#17, orionfold.com/promise/).
+## ▶️ NEXT SESSION (S7) — PLG-4 growth loops, still OPERATOR-GATED
+v0.2.0 now exists, so the renewal value-recap loop is honest to build; the reverse-trial
+idea still tensions with the public never-re-lock promise — get an operator ruling before
+speccing either. ICP P1s interleave as capacity allows (below).
+- **Relay channel: CLEAR** — Website later-6/later-7 landed EVERYTHING (license-terms link,
+  PO/MSA lane w/ manav@orionfold.com, plus the Security & trust row on /relay/); checked
+  2026-07-02, nothing owed back. Standing obligation: flag on _RELAY if any `docs/trust/*`
+  URL ever moves (storefront links them as canonical).
+- **Anti-patterns stay fenced (plg-refine §7):** no DB licensing, no CLI upsell banners, no
+  online re-validation, no expiry that disables installed packs (D4 = shipped behavior AND
+  public promise — README, issues #14–#18, orionfold.com/promise/; now enforced at the
+  UPDATE gate too, proven by agency-pro-update.test.ts).
 
 ## Held issues #5/#6/#11/#12 — WAITING on customer retest (reactive)
 Retest asks POSTED on 0.16.0 (2026-07-01); 0.17–0.20 also live. Prod build likely moots the
@@ -73,11 +69,11 @@ class. If they persist: repro cross-machine (NOT localhost) via Mode D. Triage: 
 - **Check git history for prior art**; **verify field reports before fixing** (memories).
 
 ## Recently shipped (durable in git + memory)
-- **0.20.0** (this session): PLG-3 enterprise trust pack — `docs/trust/` (data-flow disclosure
-  backed by a code-verified egress inventory; security packet; supply-chain w/ provenance
-  verified live; license-terms canonical text; continuity) + SECURITY.md + SBOM per release +
-  README trust surface + promise/storefront links; issue #17. Website later-3 landed all
-  later-2 asks (fulfilment email DEPLOYED, D4 verbatim, orionfold.com/promise/ LIVE).
-- Prior: **0.19.0** relay-agency-pro first premium pack (#16) · **0.18.0** graduation surface
-  (#15) · **0.17.0** license lifecycle (#14) · **0.16.0** prod build for npx (#10) — see
-  `git log` + beacon `recent[]`.
+- **0.21.0** (this session): pack-update workflow (install-state sidecar, `pack update` verb,
+  backup-then-overwrite, list//packs/API surfaces) + Agency Pro v0.2.0 nonprofit deep chapter
+  — the first paid update; D4 enforced at the update gate, proven vs the real prod license
+  fixture; issue #18. NOTE: publish gate caught the stale Case L counts (by design) — the
+  smoke's template literals are now commented as bump-on-chapter-growth.
+- Prior: **0.20.0** enterprise trust pack (#17) · **0.19.0** relay-agency-pro first premium
+  pack (#16) · **0.18.0** graduation surface (#15) · **0.17.0** license lifecycle (#14) ·
+  **0.16.0** prod build for npx (#10) — see `git log` + beacon `recent[]`.

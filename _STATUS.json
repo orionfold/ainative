@@ -1,25 +1,26 @@
 {
-  "focus": "S6 leg 1: operator gated S6 focus = Agency Pro v0.2.0 + pack-update workflow; groomed spec WRITTEN (features/feat-pack-update-workflow.md — engine work free per D5, nonprofit deep chapter is the first PAID update). Leg 2 implements it → 0.21.0. PLG-4 loops queued behind it, each still operator-gated.",
+  "focus": "S6 wrap: 0.21.0 SHIPPED — pack-update workflow (free engine) + Agency Pro v0.2.0 nonprofit deep chapter, the first paid update; D4 never-re-lock now ENFORCED at the update gate (was accidental). S7 = PLG-4 growth loops, each still operator-gated.",
   "blockers": [],
   "next": [
-    "Implement features/feat-pack-update-workflow.md: install-state sidecar → `pack update` verb + gate + backup-then-overwrite → list//packs/API surfaces → nonprofit deep chapter → D4 never-re-lock proof + real-launch smoke; release 0.21.0 (apiVersion window bump IN the version commit)",
-    "Re-check strategy/relay/_RELAY.md for Website replies to later-4/later-5: license-terms link on /relay/ + MSA lane (manav@orionfold.com) — these finish PLG-3's Website side",
-    "PLG-4 loops each operator-gated (AskUserQuestion before build): free registration key tier, reverse trial (⚠️ open tension with the public never-re-lock promise), founding-supporter identity, renewal value-recap (honest only once v0.2.0 exists)",
+    "PLG-4 loops each operator-gated (AskUserQuestion before build): free registration key tier, reverse trial (⚠️ open tension with the public never-re-lock promise), founding-supporter identity, renewal value-recap (now honest — v0.2.0 exists)",
     "ICP P1s interleave: fix-workflow-model-preference-propagation (smoke budget), fix-dashboard-budget-vs-cost-labeling, fix-chat-spend-metering-diagnose",
-    "Held #5/#6/#11/#12 reactive — retest asks live; 0.16–0.20 all shipped since"
+    "Held #5/#6/#11/#12 reactive — retest asks live; 0.16–0.21 all shipped since",
+    "Standing: flag on strategy/relay/_RELAY.md if any docs/trust/* URL moves (the /relay/ storefront links them as canonical)",
+    "Backlog: chore-deprecated-transitive-deps (P3) · review/close feat-prepublish-tarball-smoke (superseded) · npm 2FA-hardening now OIDC proven · stale pdfjs-dist in serverExternalPackages"
   ],
   "recent": [
-    "S6 leg 1 (2026-07-01→02): relay channel checked (no Website reply to later-4/later-5); operator gate → Agency Pro v0.2.0 + pack-update workflow; spec groomed off a full machinery map — key findings: NO installed-version record exists anywhere, `pack update` is a stub, re-install is already idempotent + additive-safe, and D4 never-re-lock currently holds only by accident (gate runs only inside installPack) — the spec makes it a commitment; backup-then-overwrite decided for user-edited files",
-    "0.20.0 shipped + published (OIDC, CI smoke green): docs/trust/ — data-flow disclosure (code-verified egress inventory: only always-on call for an npx customer is the sha256-verified build download; no telemetry/license-server confirmed), security packet, supply-chain, license-terms (canonical for the Website terms page), continuity; SECURITY.md; issue #17",
-    "CycloneDX SBOM per release: publish.yml generates + attaches orionfold-relay-<v>.sbom.cdx.json (verified on the v0.20.0 release: CycloneDX 1.5, 491 prod components); npm provenance verified live against the registry attestation (SLSA v1, npm audit signatures)",
-    "Website later-3 landed ALL later-2 asks: fulfilment email rewritten + DEPLOYED (one hero command, keep-this-file, D4 verbatim), D4 pricing copy verbatim on /relay/, gating-philosophy page LIVE at orionfold.com/promise/ — both URLs linked from README Free-vs-Paid (4b121617)",
-    "later-4 + later-5 posted on the relay channel: kept the $149 renewal price line; 2 remaining Website asks (license-terms link, invoice/PO+MSA lane); both S5 operator gates CLEARED (private vuln reporting enabled + API-verified; sales contact manav@orionfold.com confirmed + relayed + added to license-terms.md)"
+    "S6 leg 2 (2026-07-02): 0.21.0 shipped + published (OIDC, smoke green, SBOM attached): install-state sidecar (dest-file sha256s, fail-open) → `pack update` verb (semver compare, offline gate BEFORE any write, renewal-voiced refusal, backup-then-overwrite to apps/<id>/backup/<oldVersion>/) → surfaces off one packUpdateAvailability helper (pack list, /packs Update button, POST /api/packs/update w/ 402) → Agency Pro v0.2.0 nonprofit chapter (grants-analyst profile, grant-pipeline-deep row-triggered blueprint, grants table); issue #18",
+    "D4 proven end-to-end vs the REAL prod license fixture: entitled 0.1.0 install updates store-consult and the grants row-trigger fires on update-delivered content; without a license the update refuses 402 renewal-voiced with the installed pack byte-identical (agency-pro-update.test.ts + live dev-server smoke)",
+    "Publish gate WORKED: first v0.21.0 push failed Case L on stale template counts (2 tables/7 profiles/5 blueprints = the 0.1.0 shape); literals bumped + commented bump-on-chapter-growth, tag moved, second run green",
+    "Website later-6/later-7 closed later-4/later-5: license-terms link (link-not-mirror) + PO/MSA lane (manav@orionfold.com) + Security & trust row all LIVE on /relay/ — every Website-side trust-pack piece done; nothing owed back on the channel",
+    "S6 leg 1 (2026-07-01→02): spec groomed off a full machinery map — NO installed-version record existed, `pack update` was a stub, D4 held only by accident; spec made it a commitment (backup-then-overwrite decided)"
   ],
   "metrics": {
-    "released": "0.20.0",
+    "released": "0.21.0",
     "premium_packs": 1,
+    "paid_updates_delivered": 1,
     "sbom_components": "491 prod deps (CycloneDX 1.5, measured 2026-07-01)",
-    "npm_tarball": "1.4 MB (0.17.0 measurement; publish guard <10 MB passed for 0.20.0, not re-read)",
+    "npm_tarball": "1.5 MB (0.21.0 publish log)",
     "prod_artifact": "~35.5 MB gz (0.16.0 measurement, not re-read)"
   }
 }
