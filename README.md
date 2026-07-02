@@ -113,6 +113,34 @@ The governance is *in* the workflow, not bolted on. A blueprint is a fixed step 
 
 ---
 
+## Free vs paid
+
+**The engine is free.** Everything above — orchestration, governance, runtimes, profiles,
+tables, workflows, the full app — is Apache-2.0 open source with no tiers, no seat gates,
+and no feature locks. What's paid is **premium packs**: ready-to-run vertical bundles
+(profiles + workflows + tables + seed data) that materialize a specific business on top of
+the free engine.
+
+Buying one takes a license file, redeemed once:
+
+```bash
+relay license add <path-or-url from your fulfilment email>   # verify + save + unlock
+relay license status                                         # who's licensed, what's unlocked, until when
+relay license remove <license-id>                            # forget a license (packs stay installed)
+```
+
+- **Verification is 100% offline** — an Ed25519 signature check against keys embedded in
+  this repo ([`src/lib/licensing/verify.ts`](src/lib/licensing/verify.ts)). Relay never
+  phones home: no activation server, no telemetry, no network call of any kind. Works
+  air-gapped.
+- **Your packs are yours forever. Renewal gets you the year's new and updated packs +
+  priority support.** An expired or removed license never re-locks content you already
+  installed — it only gates new premium installs and updates.
+- **What's free stays free.** Capabilities never move from the free engine into a paid
+  pack. Paid packs are new content, not repossessed features.
+
+---
+
 ## Runtime bridge
 
 Run the same business process on different AI providers without changing a line of configuration. Relay's shared runtime registry routes tasks, schedules, and workflow steps through **Claude Code** (Anthropic Claude Agent SDK) and **OpenAI Codex App Server**, landing everything in the same inbox, monitoring, and cost surfaces. Switching providers is a settings change, not a rewrite.

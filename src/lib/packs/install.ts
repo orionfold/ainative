@@ -128,14 +128,27 @@ export async function installPack(
     // verified license BEFORE any write. Free packs skip this entirely. The
     // licensing modules are dynamically imported (kept out of the CLI's static
     // graph, consistent with TDR-032) and run 100% offline.
+    //
+    // Two proof paths (D1/D2):
+    //   - `--license-url` supplied → load + gate it, and on success PERSIST it
+    //     to the license store, so this is the last time the flag is needed.
+    //   - no flag → consult the store for an already-redeemed license that
+    //     grants this entitlement before refusing.
     if (pack.meta.entitlement) {
       const { assertEntitled } = await import("@/lib/licensing/gate");
-      const license = options.licenseUrl
-        ? await (await import("@/lib/licensing/load")).loadLicense(
-            options.licenseUrl
-          )
-        : undefined;
-      assertEntitled(pack.meta.entitlement, license);
+      if (options.licenseUrl) {
+        const { loadLicense } = await import("@/lib/licensing/load");
+        const license = await loadLicense(options.licenseUrl);
+        assertEntitled(pack.meta.entitlement, license);
+        const { saveLicense } = await import("@/lib/licensing/store");
+        saveLicense(license);
+      } else {
+        const { findEntitledLicense } = await import("@/lib/licensing/store");
+        if (!findEntitledLicense(pack.meta.entitlement)) {
+          // Throws the canonical "missing license" refusal.
+          assertEntitled(pack.meta.entitlement, undefined);
+        }
+      }
     }
 
     const resolved = resolvePackLayer(pack);
@@ -216,6 +229,12 @@ export async function installPack(
     // 4. File drop — atomic manifest write (with table refs rewritten to real
     // ids) + namespaced profile/blueprint artifacts into the shared dirs.
     const droppedManifest = rewriteTableRefs(pack.manifest, logicalToReal);
+    // Record the entitlement on the installed manifest so `pack list` (and
+    // the future /packs UI) can mark premium packs without re-reading the
+    // original pack source (D6).
+    if (pack.meta.entitlement) {
+      droppedManifest.entitlement = pack.meta.entitlement;
+    }
     writeManifest(appsDir, pack.meta.id, droppedManifest);
 
     const { profilesDropped, blueprintsDropped } = dropArtifacts(

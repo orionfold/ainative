@@ -54,7 +54,8 @@ export function assertEntitled(
   if (!license) {
     throw new PackLicenseError(
       `This pack requires a license (${requiredEntitlement}). ` +
-        `Re-run with --license-url=<path-or-url to your .license.json>.`,
+        `Redeem yours once with: relay license add <path-or-url to your ` +
+        `.license.json> — or pass --license-url=<path-or-url> for this install.`,
       "missing"
     );
   }

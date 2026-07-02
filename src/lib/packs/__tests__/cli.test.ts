@@ -146,6 +146,36 @@ describe("runPackCommand", () => {
     expect(errs.join("\n").toLowerCase()).toMatch(/license/);
   });
 
+  it("list: marks an installed premium pack [premium]", async () => {
+    buildPremiumFixturePack();
+    // Redeem an entitled license into the store so the premium add succeeds
+    // with no flag, then confirm the list mark.
+    const { signEnvelope } = await import(
+      "@/lib/licensing/__tests__/sign-helper"
+    );
+    const { saveLicense } = await import("@/lib/licensing/store");
+    saveLicense(
+      signEnvelope({
+        schema: "orionfold.license/v1",
+        license_id: "OF-RELAY-TEST-LIST",
+        issued_to: { email: "naya@example.com" },
+        issued_at: "2026-07-01T00:00:00Z",
+        expires_at: "2099-01-01T00:00:00Z",
+        entitlements: ["product:orionfold-relay"],
+      })
+    );
+    const { runPackCommand } = await load();
+    const addCode = await runPackCommand(["add", packDir], io());
+    expect(addCode).toBe(0);
+    logs = [];
+
+    const code = await runPackCommand(["list"], io());
+    expect(code).toBe(0);
+    const premiumLine = logs.find((l) => l.includes("cli-premium"));
+    expect(premiumLine).toBeDefined();
+    expect(premiumLine).toContain("[premium]");
+  });
+
   it("add: parses --license-url and threads it to the gate", async () => {
     buildPremiumFixturePack();
     // A structurally-valid but forged license → gate refuses, but the flag

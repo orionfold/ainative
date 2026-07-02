@@ -132,6 +132,9 @@ Examples:
   node dist/cli.js pack add ./my-pack          # install a Relay pack (folder or git url)
   node dist/cli.js pack list                   # list installed packs
   node dist/cli.js pack remove my-pack         # uninstall a pack
+  node dist/cli.js license add <path-or-url>   # redeem a license (from your fulfilment email)
+  node dist/cli.js license status              # show saved licenses + entitlements
+  node dist/cli.js license remove <id>         # remove a saved license (packs stay installed)
 `;
 }
 
@@ -163,6 +166,7 @@ program
 const firstArg = process.argv[2];
 const isPluginSubcommand = firstArg === "plugin";
 const isPackSubcommand = firstArg === "pack";
+const isLicenseSubcommand = firstArg === "license";
 
 if (isPluginSubcommand) {
   const action = process.argv[3];
@@ -194,6 +198,18 @@ if (isPackSubcommand) {
   // (TDR-032 — no static top-level import of runtime-registry-adjacent code).
   const { runPackCommand } = await import("../src/lib/packs/cli");
   const code = await runPackCommand(process.argv.slice(3), {
+    log: (m) => console.log(m),
+    error: (m) => console.error(m),
+  });
+  process.exit(code);
+}
+
+if (isLicenseSubcommand) {
+  // `relay license add|status|remove` — redeem/inspect/remove licenses (D2).
+  // Same short-circuit + dynamic-import shape as the pack verb (TDR-032).
+  // Store location honors RELAY_DATA_DIR, same as pack's dirs.
+  const { runLicenseCommand } = await import("../src/lib/licensing/cli");
+  const code = await runLicenseCommand(process.argv.slice(3), {
     log: (m) => console.log(m),
     error: (m) => console.error(m),
   });
@@ -378,7 +394,20 @@ async function main() {
   });
   const sidecarUrl = buildSidecarUrl(actualPort, bindHost);
 
-  console.log(`Orionfold Relay ${pkg.version} — Community Edition`);
+  // D3 — the banner reads the license store: a paying customer is never
+  // greeted as "Community Edition" again. Fail-OPEN: any store fault at all
+  // (missing dir, corrupt file, import error) falls back to the Community
+  // line — a broken license store must never block or noisy-up a launch.
+  let licensedTo: string | null = null;
+  try {
+    const { getLicensedIdentity } = await import("../src/lib/licensing/store");
+    licensedTo = getLicensedIdentity();
+  } catch {
+    licensedTo = null;
+  }
+  console.log(
+    `Orionfold Relay ${pkg.version} — ${licensedTo ? `Licensed to ${licensedTo}` : "Community Edition"}`,
+  );
   console.log(`Data dir: ${DATA_DIR}`);
   console.log(`Mode: ${isPrebuilt ? "production" : "development"}`);
   console.log(`Next entry: ${nextEntrypoint}`);

@@ -336,4 +336,90 @@ describe("installPack", () => {
       installPack(packDir, { ...installOpts(), licenseUrl: licPath })
     ).rejects.toThrow(PackLicenseError);
   });
+
+  it("installs a premium pack with NO --license-url when the store holds an entitled license", async () => {
+    buildFixturePack();
+    fs.writeFileSync(
+      path.join(packDir, "pack.yaml"),
+      yaml.dump({
+        id: "test-agency",
+        version: "0.1.0",
+        name: "Test Agency",
+        relayCore: ">=0.15.0",
+        entitlement: "product:orionfold-relay",
+        customers: ["acme-co", "globex"],
+      })
+    );
+    // Redeem a license first (relay license add) — the install must consult
+    // the store instead of demanding --license-url again (D1/D2).
+    const { signEnvelope } = await import(
+      "@/lib/licensing/__tests__/sign-helper"
+    );
+    const { saveLicense } = await import("@/lib/licensing/store");
+    saveLicense(
+      signEnvelope({
+        schema: "orionfold.license/v1",
+        license_id: "OF-RELAY-TEST-STORE",
+        issued_to: { email: "naya@example.com" },
+        issued_at: "2026-07-01T00:00:00Z",
+        expires_at: "2099-01-01T00:00:00Z",
+        entitlements: ["product:orionfold-relay"],
+      })
+    );
+
+    const { installPack } = await loadModules();
+    const report = await installPack(packDir, installOpts());
+    expect(report.packId).toBe("test-agency");
+
+    // The dropped manifest records the entitlement (pack list premium mark).
+    const written = yaml.load(
+      fs.readFileSync(
+        path.join(appsDir, "test-agency", "manifest.yaml"),
+        "utf-8"
+      )
+    ) as Record<string, unknown>;
+    expect(written.entitlement).toBe("product:orionfold-relay");
+  });
+
+  it("persists the --license-url license to the store on a successful premium install", async () => {
+    buildFixturePack();
+    fs.writeFileSync(
+      path.join(packDir, "pack.yaml"),
+      yaml.dump({
+        id: "test-agency",
+        version: "0.1.0",
+        name: "Test Agency",
+        relayCore: ">=0.15.0",
+        entitlement: "product:orionfold-relay",
+        customers: ["acme-co", "globex"],
+      })
+    );
+    const { signEnvelope } = await import(
+      "@/lib/licensing/__tests__/sign-helper"
+    );
+    const licPath = path.join(packDir, "real.license.json");
+    fs.writeFileSync(
+      licPath,
+      JSON.stringify(
+        signEnvelope({
+          schema: "orionfold.license/v1",
+          license_id: "OF-RELAY-TEST-FLAG",
+          issued_to: { email: "naya@example.com" },
+          issued_at: "2026-07-01T00:00:00Z",
+          expires_at: "2099-01-01T00:00:00Z",
+          entitlements: ["product:orionfold-relay"],
+        })
+      )
+    );
+
+    const { installPack } = await loadModules();
+    await installPack(packDir, { ...installOpts(), licenseUrl: licPath });
+
+    // D1 — redemption persisted; the next premium install needs no flag.
+    expect(
+      fs.existsSync(
+        path.join(dataDir, "licenses", "OF-RELAY-TEST-FLAG.license.json")
+      )
+    ).toBe(true);
+  });
 });

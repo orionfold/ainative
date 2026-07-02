@@ -138,6 +138,48 @@ interface VerifiedPayload {
 }
 
 /**
+ * Step 2 in isolation — term check on an ALREADY signature-verified payload.
+ * not_before defaults to issued_at when absent (applied post-verify, never
+ * before). A missing expires_at is treated as required and therefore a
+ * refusal — a real license always carries one.
+ *
+ * Exported for the license store, which persists any signature+term-valid
+ * license regardless of which entitlement it grants (the entitlement check
+ * belongs to the pack gate, not the save).
+ */
+export function checkTerm(
+  rawPayload: unknown,
+  now: Date
+): { ok: true } | { ok: false; detail: string } {
+  const payload = (rawPayload ?? {}) as VerifiedPayload;
+  const notBeforeRaw =
+    payload.not_before != null ? payload.not_before : payload.issued_at;
+  if (notBeforeRaw != null) {
+    const notBefore = new Date(String(notBeforeRaw));
+    if (!Number.isNaN(notBefore.getTime()) && now < notBefore) {
+      return {
+        ok: false,
+        detail: `License is not valid until ${notBefore.toISOString()}.`,
+      };
+    }
+  }
+  if (payload.expires_at == null) {
+    return { ok: false, detail: "License has no expires_at term." };
+  }
+  const expiresAt = new Date(String(payload.expires_at));
+  if (Number.isNaN(expiresAt.getTime())) {
+    return {
+      ok: false,
+      detail: `License expires_at is not a valid date: ${String(payload.expires_at)}`,
+    };
+  }
+  if (now >= expiresAt) {
+    return { ok: false, detail: `License expired ${expiresAt.toISOString()}.` };
+  }
+  return { ok: true };
+}
+
+/**
  * The full 3-step unlock gate. Returns a structured result rather than throwing
  * for the EXPECTED refusals (bad signature, out-of-term, missing entitlement) —
  * each is a normal "this license doesn't unlock this pack" outcome the verb body
@@ -161,42 +203,10 @@ export function verifyLicense(
   const payload = (doc.payload ?? {}) as VerifiedPayload;
   const now = options.now ?? new Date();
 
-  // Step 2 — term check. not_before defaults to issued_at when absent (applied
-  // post-verify, never before). A missing expires_at is treated as required and
-  // therefore a refusal — a real license always carries one.
-  const notBeforeRaw =
-    payload.not_before != null ? payload.not_before : payload.issued_at;
-  if (notBeforeRaw != null) {
-    const notBefore = new Date(String(notBeforeRaw));
-    if (!Number.isNaN(notBefore.getTime()) && now < notBefore) {
-      return {
-        ok: false,
-        reason: "term",
-        detail: `License is not valid until ${notBefore.toISOString()}.`,
-      };
-    }
-  }
-  if (payload.expires_at == null) {
-    return {
-      ok: false,
-      reason: "term",
-      detail: "License has no expires_at term.",
-    };
-  }
-  const expiresAt = new Date(String(payload.expires_at));
-  if (Number.isNaN(expiresAt.getTime())) {
-    return {
-      ok: false,
-      reason: "term",
-      detail: `License expires_at is not a valid date: ${String(payload.expires_at)}`,
-    };
-  }
-  if (now >= expiresAt) {
-    return {
-      ok: false,
-      reason: "term",
-      detail: `License expired ${expiresAt.toISOString()}.`,
-    };
+  // Step 2 — term check (see checkTerm).
+  const term = checkTerm(doc.payload, now);
+  if (!term.ok) {
+    return { ok: false, reason: "term", detail: term.detail };
   }
 
   // Step 3 — entitlement check.

@@ -15,6 +15,13 @@
 //   B. Second run (LAN bind --hostname 0.0.0.0): no re-download, still
 //      production, and /_next/* serves to a cross-origin client — the
 //      #13/#5/#6/#11/#12 class check (`next start` has no dev-origin gate).
+//   L. License lifecycle (feat-license-lifecycle, PLG-1 Mode C buy-simulation):
+//      `relay license add` with the REAL prod-signed fixture → activation
+//      ceremony; `license status` valid; a premium pack installs with NO
+//      --license-url (store consult); the launch banner reads "Licensed to";
+//      seed/clear 404 without RELAY_STAGING; rm the license store → banner
+//      reverts to Community Edition, the pack STAYS installed (D4), and
+//      RELAY_STAGING=true opens seed/clear on the prod build (PLG-S).
 //   C. Broken artifact URL: loud "Could not set up the production build"
 //      warning and a working dev-mode fallback (the status-quo floor).
 //
@@ -102,7 +109,7 @@ async function stopChild(child) {
   ]);
 }
 
-function launchCli({ installDir, dataDir, port, artifactUrl, hostname }) {
+function launchCli({ installDir, dataDir, port, artifactUrl, hostname, extraEnv }) {
   const cliPath = path.join(installDir, "node_modules", "orionfold-relay", "dist", "cli.js");
   const args = [cliPath, "--no-open", "--port", String(port)];
   if (hostname) args.push("--hostname", hostname);
@@ -115,6 +122,7 @@ function launchCli({ installDir, dataDir, port, artifactUrl, hostname }) {
       // Never inherit the repo's dev-mode gate; this simulates a customer.
       RELAY_DEV_MODE: "",
       RELAY_INSTANCE_MODE: "",
+      ...(extraEnv ?? {}),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -130,6 +138,27 @@ function launchCli({ installDir, dataDir, port, artifactUrl, hostname }) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(`ASSERTION FAILED: ${message}`);
+}
+
+/** Run an installed-CLI subcommand (license/pack verbs) and capture output. */
+function runCliCommand({ installDir, dataDir, args }) {
+  const cliPath = path.join(installDir, "node_modules", "orionfold-relay", "dist", "cli.js");
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, [cliPath, ...args], {
+      cwd: installDir,
+      env: {
+        ...process.env,
+        RELAY_DATA_DIR: dataDir,
+        RELAY_DEV_MODE: "",
+        RELAY_INSTANCE_MODE: "",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let output = "";
+    child.stdout.on("data", (chunk) => (output += chunk.toString()));
+    child.stderr.on("data", (chunk) => (output += chunk.toString()));
+    child.on("exit", (code) => resolve({ code, output }));
+  });
 }
 
 async function main() {
@@ -222,6 +251,117 @@ async function main() {
     }
   }
 
+  // ---- Case L: license lifecycle — the Mode C buy-simulation (PLG-1) ----
+  console.log("\n[smoke] Case L: license lifecycle (redeem → ceremony → no-flag premium install → licensed banner → D4)");
+  {
+    const dataDir = path.join(workDir, "data-l");
+    mkdirSync(dataDir, { recursive: true });
+
+    // The "fulfilment email attachment": the real prod-signed fixture.
+    const licenseSrc = path.join(
+      repoRoot,
+      "src/lib/licensing/__tests__/fixtures/of-relay-verify-20260701.license.json",
+    );
+    const licensePath = path.join(workDir, "my.license.json");
+    writeFileSync(licensePath, readFileSync(licenseSrc));
+
+    // 1. Redeem: verify + persist + activation ceremony.
+    const add = await runCliCommand({ installDir, dataDir, args: ["license", "add", licensePath] });
+    assert(add.code === 0, `license add should succeed (exit ${add.code}):\n${add.output}`);
+    assert(/License verified/.test(add.output), "ceremony should confirm offline verification");
+    assert(/OF-RELAY-VERIFY-20260701/.test(add.output), "ceremony should show the license ID");
+    assert(/Your packs are yours forever\./.test(add.output), "ceremony should state the D4 promise");
+    assert(
+      existsSync(path.join(dataDir, "licenses", "OF-RELAY-VERIFY-20260701.license.json")),
+      "license should persist under <data-dir>/licenses/",
+    );
+
+    // 2. Status re-verifies at read time.
+    const status = await runCliCommand({ installDir, dataDir, args: ["license", "status"] });
+    assert(status.code === 0 && /valid/.test(status.output), `license status should be valid:\n${status.output}`);
+
+    // 3. A premium pack installs with NO --license-url (store consult).
+    const packDir = path.join(workDir, "premium-pack");
+    mkdirSync(path.join(packDir, "base"), { recursive: true });
+    writeFileSync(
+      path.join(packDir, "pack.yaml"),
+      [
+        "id: smoke-premium",
+        "version: 0.1.0",
+        "name: Smoke Premium Pack",
+        'relayCore: ">=0.15.0"',
+        "entitlement: product:orionfold-relay",
+        "customers: []",
+        "",
+      ].join("\n"),
+    );
+    writeFileSync(
+      path.join(packDir, "base", "manifest.yaml"),
+      [
+        "id: smoke-premium",
+        "version: 0.1.0",
+        "name: Smoke Premium Pack",
+        "profiles: []",
+        "blueprints: []",
+        "tables: []",
+        "schedules: []",
+        "",
+      ].join("\n"),
+    );
+    const packAdd = await runCliCommand({ installDir, dataDir, args: ["pack", "add", packDir] });
+    assert(
+      packAdd.code === 0 && /Installed smoke-premium/.test(packAdd.output),
+      `premium pack should install with no --license-url (exit ${packAdd.code}):\n${packAdd.output}`,
+    );
+    const packList = await runCliCommand({ installDir, dataDir, args: ["pack", "list"] });
+    assert(/smoke-premium.*\[premium\]/.test(packList.output), `pack list should mark [premium]:\n${packList.output}`);
+
+    // 4. Launch: licensed banner (D3) + seed/clear 404 without RELAY_STAGING.
+    {
+      const port = await reserveLoopbackPort();
+      const { child, getOutput } = launchCli({ installDir, dataDir, port, artifactUrl });
+      try {
+        await waitForOutput(getOutput, /Licensed to manav@orionfold\.com/, PROD_START_TIMEOUT_MS, "licensed banner");
+        assert(!/Community Edition/.test(getOutput()), "a licensee is never greeted as Community Edition");
+        await waitForHttpOk(`http://127.0.0.1:${port}/`, PROD_START_TIMEOUT_MS);
+        const seed = await fetch(`http://127.0.0.1:${port}/api/data/seed`, { method: "POST" });
+        assert(seed.status === 404, `seed must 404 in a customer-shaped prod run (got ${seed.status})`);
+      } finally {
+        await stopChild(child);
+      }
+    }
+
+    // 5. D4 proof: rm the license store → banner reverts, pack STAYS installed.
+    //    Same relaunch opts into RELAY_STAGING=true → seed/clear open (PLG-S).
+    rmSync(path.join(dataDir, "licenses"), { recursive: true, force: true });
+    {
+      const port = await reserveLoopbackPort();
+      const { child, getOutput } = launchCli({
+        installDir,
+        dataDir,
+        port,
+        artifactUrl,
+        extraEnv: { RELAY_STAGING: "true" },
+      });
+      try {
+        await waitForOutput(getOutput, /Community Edition/, PROD_START_TIMEOUT_MS, "community banner after store removal");
+        await waitForHttpOk(`http://127.0.0.1:${port}/`, PROD_START_TIMEOUT_MS);
+        const seed = await fetch(`http://127.0.0.1:${port}/api/data/seed`, { method: "POST" });
+        assert(seed.status === 200, `seed must open in staging prod mode (got ${seed.status})`);
+        const clear = await fetch(`http://127.0.0.1:${port}/api/data/clear`, { method: "POST" });
+        assert(clear.status === 200, `clear must open in staging prod mode (got ${clear.status})`);
+      } finally {
+        await stopChild(child);
+      }
+    }
+    assert(
+      existsSync(path.join(dataDir, "apps", "smoke-premium", "manifest.yaml")),
+      "installed premium pack must SURVIVE license removal (D4)",
+    );
+    const listAfter = await runCliCommand({ installDir, dataDir, args: ["pack", "list"] });
+    assert(/smoke-premium/.test(listAfter.output), "pack list still shows the pack after license removal (D4)");
+  }
+
   // ---- Case C: broken artifact URL — loud warning, dev-mode fallback boots ----
   console.log("\n[smoke] Case C: broken artifact URL → loud dev-mode fallback");
   {
@@ -250,7 +390,9 @@ async function main() {
 
   await fs.rm(workDir, { recursive: true, force: true });
   rmSync(tarballPath, { force: true });
-  console.log("\n[smoke] npx production smoke passed: A (prod first run), B (cached + LAN), C (loud fallback).");
+  console.log(
+    "\n[smoke] npx production smoke passed: A (prod first run), B (cached + LAN), L (license lifecycle + staging gate), C (loud fallback).",
+  );
 }
 
 main().catch((error) => {

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { seedSampleData } from "@/lib/data/seed";
+import { isDataOpsAllowed } from "@/lib/data/staging-gate";
 
 export async function POST() {
-  if (process.env.NODE_ENV === "production") {
+  if (!isDataOpsAllowed()) {
     return NextResponse.json(null, { status: 404 });
   }
 

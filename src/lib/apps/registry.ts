@@ -165,6 +165,9 @@ export const AppManifestSchema = z
       .passthrough()
       .optional(),
     view: ViewSchema.optional(),
+    // Premium packs record their pack.yaml `entitlement` on the installed
+    // manifest so list surfaces can mark them without the original source.
+    entitlement: z.string().min(1).optional(),
   })
   .passthrough();
 
@@ -183,6 +186,8 @@ export interface AppSummary {
   scheduleHuman: string | null;
   createdAt: number;
   files: string[];
+  /** The pack's entitlement string when it was installed as premium content. */
+  entitlement: string | null;
 }
 
 export interface AppDetail extends AppSummary {
@@ -284,6 +289,7 @@ function manifestToSummary(manifest: AppManifest, rootDir: string): AppSummary {
     scheduleHuman,
     createdAt,
     files: collectFiles(rootDir).sort(),
+    entitlement: manifest.entitlement ?? null,
   };
 }
 

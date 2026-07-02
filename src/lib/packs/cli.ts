@@ -125,7 +125,8 @@ async function runList(io: PackCommandIo): Promise<number> {
       return 0;
     }
     for (const app of apps) {
-      io.log(`${app.id}  ${app.name}  ${app.primitivesSummary}`);
+      const premium = app.entitlement ? "  [premium]" : "";
+      io.log(`${app.id}  ${app.name}  ${app.primitivesSummary}${premium}`);
     }
     return 0;
   } catch (err) {

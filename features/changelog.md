@@ -1,5 +1,26 @@
 # Feature Changelog
 
+## 2026-07-01 — shipped feat-license-lifecycle (PLG-1) as 0.17.0
+
+Implemented same-session after grooming (below): license store + `relay license add|status|remove`
++ licensed banner + activation ceremony + install store-consult + `[premium]` list marks +
+`RELAY_STAGING` seed/clear re-gate + README Free-vs-Paid. 34 new unit tests (TDD throughout);
+acceptance = smoke Case L (Mode C buy-simulation) green against the installed 0.17.0 tarball with
+the real prod-signed fixture — including the D4 proof (license removed → banner reverts, premium
+pack stays installed).
+
+## 2026-07-01 — groomed feat-license-lifecycle (PLG-1) for 0.17.0
+
+Groomed `_SPECS/plg-refine.md` §5 PLG-1 into `features/feat-license-lifecycle.md`. Operator gates
+resolved during grooming: banner identity = `Licensed to <name → email>` (confirmed against the
+Website Stripe webhook — fulfilment captures email always, billing name usually, org never);
+D4 perpetual-fallback public wording approved verbatim from the program spec; ships as **0.17.0**.
+Scope: license store (`~/.relay/licenses/`, file-based per the no-DB-licensing fence), `relay
+license add|status|remove` verb, install store-consult fallback, licensed banner, activation
+ceremony, `pack list` premium marks, seed/clear re-gate on `RELAY_STAGING=true` (PLG-S slice),
+README Free-vs-Paid. Acceptance = Mode C buy-simulation in the staging harness with the real
+prod-signed fixture.
+
 ## 2026-07-01 — shipped 3 of 4 P0 ICP-walkthrough fixes
 
 Executed the top of the groomed ICP backlog. All three are smoke-verified (two are
