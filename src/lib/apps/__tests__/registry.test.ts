@@ -244,6 +244,46 @@ describe("deleteAppCascade", () => {
     expect(fs.existsSync(path.join(appsDir, "wealth-tracker"))).toBe(false);
   });
 
+  it("sweeps app:<appId>:* schedule rows registered by the pack installer", async () => {
+    const { db } = await import("@/lib/db");
+    const { schedules } = await import("@/lib/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const now = new Date();
+    db.insert(schedules)
+      .values({
+        id: "app:wealth-tracker:monday-8am",
+        name: "Monday 8am (wealth-tracker)",
+        prompt: "App schedule",
+        cronExpression: "0 8 * * 1",
+        status: "active",
+        type: "scheduled",
+        firingCount: 0,
+        suppressionCount: 0,
+        heartbeatSpentToday: 0,
+        failureStreak: 0,
+        turnBudgetBreachStreak: 0,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run();
+
+    writeManifest(appsDir, "wealth-tracker", WEALTH_MANIFEST);
+    const result = await deleteAppCascade("wealth-tracker", {
+      appsDir,
+      profilesDir,
+      blueprintsDir,
+      deleteProjectFn: () => false,
+    });
+
+    expect(result.schedulesRemoved).toBe(1);
+    const row = db
+      .select()
+      .from(schedules)
+      .where(eq(schedules.id, "app:wealth-tracker:monday-8am"))
+      .get();
+    expect(row).toBeUndefined();
+  });
+
   it("returns filesRemoved=false projectRemoved=false for an unknown app id", async () => {
     const result = await deleteAppCascade("does-not-exist", {
       appsDir,

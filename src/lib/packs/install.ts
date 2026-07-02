@@ -78,6 +78,7 @@ export interface InstallReport {
   profilesDropped: number;
   blueprintsDropped: number;
   rowsSeeded: number;
+  schedulesRegistered: number;
 }
 
 interface CustomerSeedEntry {
@@ -161,6 +162,32 @@ export async function installPack(
 
     const resolved = resolvePackLayer(pack);
 
+    // 2c. Manifest-schedule validation — still BEFORE any write. A schedule
+    // that can never fire (no cron) or fires into nothing (no/unknown
+    // blueprint) must refuse the whole install, not half-install and go
+    // silent at runtime (Principle #1).
+    const declaredBlueprints = new Set(
+      pack.manifest.blueprints.map((bp) => bp.id)
+    );
+    for (const sched of pack.manifest.schedules) {
+      if (!sched.cron) {
+        throw new PackValidationError(
+          `Manifest schedule "${sched.id}" has no cron expression.`
+        );
+      }
+      if (!sched.runs) {
+        throw new PackValidationError(
+          `Manifest schedule "${sched.id}" has no "runs" blueprint.`
+        );
+      }
+      if (!declaredBlueprints.has(sched.runs)) {
+        throw new PackValidationError(
+          `Manifest schedule "${sched.id}" runs blueprint "${sched.runs}", ` +
+            `which the manifest does not declare.`
+        );
+      }
+    }
+
     // 3. DB-write boundary (bounded, reuses existing seams).
     const { ensureAppProject } = await import("@/lib/apps/compose-integration");
     const { ensureCustomer } = await import("@/lib/customers");
@@ -234,9 +261,65 @@ export async function installPack(
       customersSeeded += 1;
     }
 
+    // 3c. Schedules — registered as REAL rows in the schedules DB table under
+    // deterministic composite ids (app:<appId>:<scheduleId>). The scheduler
+    // engine and the scheduleNextFire KPI both resolve against that table;
+    // a manifest-only schedule never fires and its KPI silently reads null.
+    // Reuses the state-preserving upsert (installSchedulesFromSpecs), so a
+    // re-install refreshes config without clobbering scheduler runtime state.
+    const scheduleLogicalToReal = new Map<string, string>();
+    let schedulesRegistered = 0;
+    if (pack.manifest.schedules.length > 0) {
+      const { appScheduleId } = await import("@/lib/apps/app-schedule-id");
+      const { installSchedulesFromSpecs } = await import(
+        "@/lib/schedules/installer"
+      );
+      const specs = pack.manifest.schedules.map((sched) => {
+        const compositeId = appScheduleId(pack.meta.id, sched.id);
+        scheduleLogicalToReal.set(sched.id, compositeId);
+        const name =
+          typeof (sched as { name?: unknown }).name === "string"
+            ? ((sched as { name?: string }).name as string)
+            : titleCase(sched.id);
+        return {
+          id: compositeId,
+          name: `${name} (${pack.meta.id})`,
+          version: pack.meta.version,
+          // Display-only: the scheduler branches on the app: id prefix and
+          // dispatches the blueprint; this prompt is never sent to an agent.
+          prompt: `App schedule for "${pack.meta.id}" — runs blueprint "${sched.runs}".`,
+          cronExpression: sched.cron!,
+          recurs: true,
+          type: "scheduled" as const,
+        };
+      });
+      installSchedulesFromSpecs(specs);
+      schedulesRegistered = specs.length;
+
+      // Own the rows: parent them to the pack's project so the Schedules
+      // surface groups them with the app. First install only — a user who
+      // reassigned the project keeps their choice (state, not config).
+      const { db } = await import("@/lib/db");
+      const { schedules: schedulesTable } = await import("@/lib/db/schema");
+      const { and, inArray, isNull } = await import("drizzle-orm");
+      db.update(schedulesTable)
+        .set({ projectId: pack.meta.id })
+        .where(
+          and(
+            inArray(schedulesTable.id, specs.map((s) => s.id)),
+            isNull(schedulesTable.projectId)
+          )
+        )
+        .run();
+    }
+
     // 4. File drop — atomic manifest write (with table refs rewritten to real
     // ids) + namespaced profile/blueprint artifacts into the shared dirs.
-    const droppedManifest = rewriteTableRefs(pack.manifest, logicalToReal);
+    const droppedManifest = rewriteTableRefs(
+      pack.manifest,
+      logicalToReal,
+      scheduleLogicalToReal
+    );
     // Record the entitlement on the installed manifest so `pack list` (and
     // the future /packs UI) can mark premium packs without re-reading the
     // original pack source (D6).
@@ -261,6 +344,7 @@ export async function installPack(
       profilesDropped,
       blueprintsDropped,
       rowsSeeded,
+      schedulesRegistered,
     };
   } finally {
     cleanup();
@@ -346,14 +430,17 @@ function readTableSeed(
 // ── Manifest rewrite + write ─────────────────────────────────────────
 
 /**
- * Rewrite the manifest's table refs from authored logical ids to the real
- * UUIDs created at install. The running app machinery (row-trigger dispatch,
- * view-kit bindings) resolves tables by these ids, so the dropped manifest
- * must carry the real ids, not the author's logical handles.
+ * Rewrite the manifest's table and schedule refs from authored logical ids
+ * to the real ids created at install (tables: UUIDs; schedules: composite
+ * `app:<appId>:<id>` DB ids). The running app machinery (row-trigger
+ * dispatch, view-kit bindings, scheduleNextFire KPIs) resolves by these ids,
+ * so the dropped manifest must carry the real ids, not the author's logical
+ * handles.
  */
 function rewriteTableRefs(
   manifest: AppManifest,
-  logicalToReal: Map<string, string>
+  logicalToReal: Map<string, string>,
+  scheduleLogicalToReal: Map<string, string> = new Map()
 ): AppManifest {
   const rewritten: AppManifest = {
     ...manifest,
@@ -361,35 +448,49 @@ function rewriteTableRefs(
       const real = logicalToReal.get(t.id);
       return real ? { ...t, id: real } : t;
     }),
+    // Row-insert triggers bind to tables by the SAME logical id. Dispatch
+    // (manifest-trigger-dispatch) matches trigger.table against the REAL
+    // UUID, so an unrewritten ref silently never fires.
+    blueprints: manifest.blueprints.map((bp) => {
+      const triggerTable = bp.trigger?.table;
+      if (!triggerTable) return bp;
+      const real = logicalToReal.get(triggerTable);
+      return real ? { ...bp, trigger: { ...bp.trigger!, table: real } } : bp;
+    }),
+    schedules: manifest.schedules.map((s) => {
+      const real = scheduleLogicalToReal.get(s.id);
+      return real ? { ...s, id: real } : s;
+    }),
   };
-  // The view binds to tables by the SAME logical id. Rewrite those refs too —
-  // hero/secondary/cadence/runs bindings and every KPI source (incl. nested
-  // ratio numerator/denominator). Missing this leaves the view pointing at a
-  // logical name that no longer matches the real id, so KPIs silently read 0.
+  // The view binds to tables and schedules by the SAME logical ids. Rewrite
+  // those refs too — hero/secondary/cadence/runs bindings and every KPI
+  // source (incl. nested ratio numerator/denominator). Missing this leaves
+  // the view pointing at a logical name that no longer matches the real id,
+  // so KPIs silently read 0 (tables) or null (scheduleNextFire).
   if (rewritten.view) {
-    rewritten.view = rewriteViewTableRefs(
-      rewritten.view,
-      logicalToReal
-    ) as AppManifest["view"];
+    rewritten.view = rewriteViewRefs(rewritten.view, {
+      table: logicalToReal,
+      schedule: scheduleLogicalToReal,
+    }) as AppManifest["view"];
   }
   return rewritten;
 }
 
-/** Deep-rewrite every `table` reference inside a view config to its real id. */
-function rewriteViewTableRefs(
+/** Deep-rewrite every `table`/`schedule` reference inside a view config to its real id. */
+function rewriteViewRefs(
   view: unknown,
-  logicalToReal: Map<string, string>
+  maps: { table: Map<string, string>; schedule: Map<string, string> }
 ): unknown {
   if (Array.isArray(view)) {
-    return view.map((v) => rewriteViewTableRefs(v, logicalToReal));
+    return view.map((v) => rewriteViewRefs(v, maps));
   }
   if (view && typeof view === "object") {
     const out: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(view as Record<string, unknown>)) {
-      if (key === "table" && typeof value === "string") {
-        out[key] = logicalToReal.get(value) ?? value;
+      if ((key === "table" || key === "schedule") && typeof value === "string") {
+        out[key] = maps[key].get(value) ?? value;
       } else {
-        out[key] = rewriteViewTableRefs(value, logicalToReal);
+        out[key] = rewriteViewRefs(value, maps);
       }
     }
     return out;

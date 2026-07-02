@@ -37,7 +37,9 @@ async function loadModules() {
 
 // ── Fixture pack builder ─────────────────────────────────────────────
 
-function buildFixturePack(): void {
+function buildFixturePack(
+  manifestPatch: Record<string, unknown> = {}
+): void {
   fs.writeFileSync(
     path.join(packDir, "pack.yaml"),
     yaml.dump({
@@ -89,6 +91,7 @@ function buildFixturePack(): void {
           ],
         },
       },
+      ...manifestPatch,
     })
   );
 
@@ -194,6 +197,153 @@ describe("installPack", () => {
     expect(
       fs.existsSync(path.join(blueprintsDir, "test-agency--weekly.yaml"))
     ).toBe(true);
+  });
+
+  it("rewrites blueprints[].trigger.table to the real table id so row-insert triggers fire", async () => {
+    // A pack-authored trigger references the LOGICAL table id. Dispatch
+    // (manifest-trigger-dispatch) matches trigger.table against the REAL
+    // UUID, so an unrewritten ref silently never fires.
+    buildFixturePack({
+      blueprints: [
+        {
+          id: "test-agency--weekly",
+          source: "$RELAY_DATA_DIR/blueprints/test-agency--weekly.yaml",
+          trigger: { kind: "row-insert", table: "clients" },
+        },
+      ],
+    });
+    const { installPack, registry } = await loadModules();
+
+    await installPack(packDir, installOpts());
+
+    const app = registry.getApp("test-agency", appsDir);
+    const realTableId = app!.manifest.tables[0].id;
+    expect(realTableId).not.toBe("clients");
+    expect(app!.manifest.blueprints[0].trigger?.table).toBe(realTableId);
+  });
+
+  it("registers manifest schedules as real schedule rows and rewrites schedule refs", async () => {
+    // A manifest schedule (id/cron/runs) must become a real row in the
+    // schedules DB table — scheduleNextFire KPIs resolve against that table,
+    // and the scheduler engine only fires rows it can see. The manifest's
+    // schedule ids (and view bindings referencing them) are rewritten to the
+    // composite DB id, mirroring the logical→real table-ref discipline.
+    buildFixturePack({
+      schedules: [
+        {
+          id: "month-end",
+          cron: "0 6 1 * *",
+          runs: "test-agency--weekly",
+        },
+      ],
+      view: {
+        kit: "ledger",
+        bindings: {
+          hero: { table: "clients" },
+          kpis: [
+            {
+              id: "next-close",
+              label: "Next close",
+              source: { kind: "scheduleNextFire", schedule: "month-end" },
+              format: "relative",
+            },
+          ],
+        },
+      },
+    });
+    const { installPack, registry, db, schedules } = await loadModules();
+
+    const report = await installPack(packDir, installOpts());
+    expect(report.schedulesRegistered).toBe(1);
+
+    // Real schedule row, active, with a computed nextFireAt and owned by the
+    // pack's project.
+    const row = await db
+      .select()
+      .from(schedules)
+      .where(
+        (await import("drizzle-orm")).eq(schedules.id, "app:test-agency:month-end")
+      )
+      .get();
+    expect(row).toBeDefined();
+    expect(row!.status).toBe("active");
+    expect(row!.cronExpression).toBe("0 6 1 * *");
+    expect(row!.nextFireAt).not.toBeNull();
+    expect(row!.projectId).toBe("test-agency");
+
+    // Manifest schedule id + the view's scheduleNextFire binding rewritten to
+    // the composite DB id so the KPI resolves (not silently null).
+    const app = registry.getApp("test-agency", appsDir);
+    expect(app!.manifest.schedules[0].id).toBe("app:test-agency:month-end");
+    const view = app!.manifest.view as {
+      bindings?: { kpis?: { source?: { schedule?: string } }[] };
+    };
+    expect(view.bindings?.kpis?.[0]?.source?.schedule).toBe(
+      "app:test-agency:month-end"
+    );
+  });
+
+  it("preserves scheduler runtime state on re-install (upsert discipline)", async () => {
+    const schedulePatch = {
+      schedules: [
+        { id: "month-end", cron: "0 6 1 * *", runs: "test-agency--weekly" },
+      ],
+    };
+    buildFixturePack(schedulePatch);
+    const { installPack, db, schedules } = await loadModules();
+    const { eq } = await import("drizzle-orm");
+
+    await installPack(packDir, installOpts());
+
+    // Simulate scheduler runtime state + a user pause.
+    const compositeId = "app:test-agency:month-end";
+    db.update(schedules)
+      .set({ firingCount: 5, status: "paused" })
+      .where(eq(schedules.id, compositeId))
+      .run();
+
+    // Re-install with a changed cron — config updates, state survives.
+    buildFixturePack({
+      schedules: [
+        { id: "month-end", cron: "0 7 1 * *", runs: "test-agency--weekly" },
+      ],
+    });
+    await installPack(packDir, installOpts());
+
+    const row = await db
+      .select()
+      .from(schedules)
+      .where(eq(schedules.id, compositeId))
+      .get();
+    expect(row!.cronExpression).toBe("0 7 1 * *"); // config refreshed
+    expect(row!.firingCount).toBe(5); // state preserved
+    expect(row!.status).toBe("paused"); // user pause survives re-install
+  });
+
+  it("refuses a manifest schedule missing cron/runs or naming an undeclared blueprint, before any write", async () => {
+    const { installPack, db, projects } = await loadModules();
+    const { PackValidationError } = await import("../format");
+    const { eq } = await import("drizzle-orm");
+
+    const cases = [
+      { id: "no-cron", runs: "test-agency--weekly" },
+      { id: "no-runs", cron: "0 6 1 * *" },
+      { id: "bad-runs", cron: "0 6 1 * *", runs: "not-declared" },
+    ];
+    for (const sched of cases) {
+      buildFixturePack({ schedules: [sched] });
+      await expect(installPack(packDir, installOpts())).rejects.toThrow(
+        PackValidationError
+      );
+    }
+
+    // No partial install — the project was never created.
+    const proj = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, "test-agency"))
+      .get();
+    expect(proj).toBeUndefined();
   });
 
   it("is idempotent on re-install — no duplicate project, customers, or tables", async () => {

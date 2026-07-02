@@ -54,7 +54,10 @@ describe("plugin-spec-tools — scaffoldPluginSpec + create_plugin_spec chat too
     expect(yamlText).toMatch(/^author: ainative$/m);
     expect(yamlText).toMatch(/^origin: ainative-internal$/m);
     expect(yamlText).toContain("id: github-mine");
-    expect(yamlText).toContain('apiVersion: "0.17"');
+    // Derive from the single source of truth — a hardcoded minor goes stale
+    // at every apiVersion window bump (this line broke on 0.17→0.18).
+    const { CURRENT_PLUGIN_API_VERSION } = await import("@/lib/plugins/sdk/types");
+    expect(yamlText).toContain(`apiVersion: "${CURRENT_PLUGIN_API_VERSION}"`);
     expect(yamlText).toContain("kind: chat-tools");
   });
 

@@ -104,7 +104,8 @@ async function runAdd(
         `${report.tablesCreated} table(s) (${report.rowsSeeded} row(s)), ` +
         `${report.customersSeeded} customer(s), ` +
         `${report.profilesDropped} profile(s), ` +
-        `${report.blueprintsDropped} blueprint(s).`
+        `${report.blueprintsDropped} blueprint(s), ` +
+        `${report.schedulesRegistered} schedule(s).`
     );
     return 0;
   } catch (err) {

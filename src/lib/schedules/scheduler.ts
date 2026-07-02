@@ -12,7 +12,7 @@
  */
 
 import { db } from "@/lib/db";
-import { schedules, tasks, agentLogs, scheduleDocumentInputs, documents, workflows, scheduleFiringMetrics } from "@/lib/db/schema";
+import { schedules, tasks, agentLogs, scheduleDocumentInputs, documents, workflows, scheduleFiringMetrics, notifications } from "@/lib/db/schema";
 import { eq, and, lte, inArray, sql, asc, isNotNull } from "drizzle-orm";
 import { resumeWorkflow } from "@/lib/workflows/engine";
 import { computeNextFireTime } from "./interval-parser";
@@ -29,6 +29,7 @@ import { sendToChannels } from "@/lib/channels/registry";
 import type { ChannelMessage } from "@/lib/channels/types";
 import { processHandoffs } from "@/lib/agents/handoff/bus";
 import { claimSlot, reapExpiredLeases, countRunningScheduledSlots } from "./slot-claim";
+import { isAppScheduleId, parseAppScheduleId } from "@/lib/apps/app-schedule-id";
 import { isAnyChatStreaming } from "@/lib/chat/active-streams";
 import {
   getScheduleMaxConcurrent,
@@ -439,9 +440,13 @@ export async function tickScheduler(): Promise<void> {
         continue;
       }
 
-      // Branch on schedule type
+      // Branch on schedule type. App-manifest schedules (composite
+      // `app:<appId>:<id>` rows registered by the pack installer) dispatch
+      // their manifest blueprint instead of creating a prompt task.
       if (schedule.type === "heartbeat") {
         await fireHeartbeat(schedule, now);
+      } else if (isAppScheduleId(schedule.id)) {
+        await fireAppSchedule(schedule, now);
       } else {
         await fireSchedule(schedule, now);
       }
@@ -647,6 +652,117 @@ async function fireSchedule(
       // Invalid JSON in deliveryChannels — skip
     }
   }
+}
+
+/**
+ * Fire an app-manifest schedule (composite `app:<appId>:<id>` row): resolve
+ * the owning app's manifest, find this schedule's `runs` blueprint, and
+ * dispatch it via the same instantiate→execute chokepoint as row triggers.
+ *
+ * The manifest stays the source of truth for WHAT runs — the DB row only
+ * carries cadence + scheduler state — so a pack update that repoints `runs`
+ * takes effect without a re-install of the schedule row.
+ *
+ * A schedule whose owning app (or manifest entry) is gone is paused, not
+ * left to refire into nothing forever; the pause is surfaced via a
+ * notification (Principle #1 — zero silent failures).
+ *
+ * App modules are dynamically imported at fire time, mirroring the
+ * TDR-032 discipline used across the dispatch chain.
+ */
+async function fireAppSchedule(
+  schedule: typeof schedules.$inferSelect,
+  now: Date
+): Promise<void> {
+  // Expiry / max-firings — same lifecycle rules as fireSchedule.
+  if (schedule.expiresAt && schedule.expiresAt <= now) {
+    await db
+      .update(schedules)
+      .set({ status: "expired", updatedAt: now })
+      .where(eq(schedules.id, schedule.id));
+    return;
+  }
+  if (schedule.maxFirings && schedule.firingCount >= schedule.maxFirings) {
+    await db
+      .update(schedules)
+      .set({ status: "expired", updatedAt: now })
+      .where(eq(schedules.id, schedule.id));
+    return;
+  }
+
+  const parsed = parseAppScheduleId(schedule.id);
+  const { getApp } = await import("@/lib/apps/registry");
+  const app = parsed ? getApp(parsed.appId) : null;
+  const entry = app?.manifest.schedules.find((s) => s.id === schedule.id);
+  const blueprintId = entry?.runs;
+
+  if (!parsed || !blueprintId) {
+    const reason = !parsed
+      ? "its id could not be parsed"
+      : !app
+        ? `app "${parsed.appId}" is not installed`
+        : `app "${parsed.appId}" no longer declares it`;
+    console.error(
+      `[scheduler] pausing app schedule "${schedule.id}" — ${reason}`
+    );
+    await db
+      .update(schedules)
+      .set({ status: "paused", updatedAt: now })
+      .where(eq(schedules.id, schedule.id));
+    try {
+      await db.insert(notifications).values({
+        id: crypto.randomUUID(),
+        taskId: null,
+        type: "task_failed",
+        title: `App schedule paused: ${schedule.name}`,
+        body: `Schedule "${schedule.id}" was paused because ${reason}. Re-install the pack to restore it.`,
+        read: false,
+        createdAt: now,
+      });
+    } catch (nerr) {
+      console.error(`[scheduler] notification write failed:`, nerr);
+    }
+    return;
+  }
+
+  const { dispatchScheduledBlueprint } = await import(
+    "@/lib/apps/manifest-trigger-dispatch"
+  );
+  await dispatchScheduledBlueprint({
+    appId: parsed.appId,
+    blueprintId,
+    scheduleId: schedule.id,
+  });
+
+  // Update counters + compute the next fire (scheduleNextFire KPI reads this).
+  const firingNumber = schedule.firingCount + 1;
+  const isOneShot = !schedule.recurs;
+  const reachedMax =
+    schedule.maxFirings !== null && firingNumber >= schedule.maxFirings;
+  const nextStatus = isOneShot
+    ? "completed"
+    : reachedMax
+      ? "expired"
+      : "active";
+  const nextFireAt =
+    nextStatus === "active"
+      ? computeNextFireTime(schedule.cronExpression, now)
+      : null;
+
+  await db
+    .update(schedules)
+    .set({
+      firingCount: firingNumber,
+      lastFiredAt: now,
+      nextFireAt,
+      status: nextStatus,
+      updatedAt: now,
+    })
+    .where(eq(schedules.id, schedule.id));
+
+  console.log(
+    `[scheduler] fired app schedule "${schedule.name}" → blueprint ${blueprintId} (firing #${firingNumber})`
+  );
 }
 
 /**

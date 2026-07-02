@@ -137,6 +137,63 @@ export async function dispatchBlueprintForRow(input: {
   }
 }
 
+/**
+ * Cron-fired blueprint dispatch for app-manifest schedules
+ * (`manifest.schedules[].runs`). The schedule-side sibling of
+ * `dispatchBlueprintForRow` — same instantiate → execute chokepoint, same
+ * notification-on-failure contract, but with no row context: variables come
+ * entirely from the blueprint's declared defaults, so a pack author must
+ * give every required variable a default for a scheduled blueprint.
+ *
+ * Returns `{ workflowId }` on success, `null` on failure (already logged +
+ * recorded in `notifications`).
+ */
+export async function dispatchScheduledBlueprint(input: {
+  appId: string;
+  blueprintId: string;
+  scheduleId: string;
+}): Promise<{ workflowId: string } | null> {
+  const { appId, blueprintId, scheduleId } = input;
+  try {
+    const { instantiateBlueprint } = await import(
+      "@/lib/workflows/blueprints/instantiator"
+    );
+    const { executeWorkflow } = await import("@/lib/workflows/engine");
+
+    const { workflowId } = await instantiateBlueprint(blueprintId, {}, appId);
+
+    // Fire-and-forget — workflow may run for minutes
+    executeWorkflow(workflowId).catch((err) => {
+      console.error(
+        `[manifest-trigger-dispatch] executeWorkflow ${workflowId} failed:`,
+        err
+      );
+    });
+
+    return { workflowId };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[manifest-trigger-dispatch] scheduled dispatch failed for app=${appId} blueprint=${blueprintId}:`,
+      err
+    );
+    try {
+      await db.insert(notifications).values({
+        id: crypto.randomUUID(),
+        taskId: null,
+        type: "task_failed",
+        title: `Schedule failure in app "${appId}"`,
+        body: `Blueprint "${blueprintId}" failed for schedule "${scheduleId}": ${message}`,
+        read: false,
+        createdAt: new Date(),
+      });
+    } catch (nerr) {
+      console.error(`[manifest-trigger-dispatch] notification write failed:`, nerr);
+    }
+    return null;
+  }
+}
+
 interface MatchingSubscription {
   appId: string;
   blueprintId: string;

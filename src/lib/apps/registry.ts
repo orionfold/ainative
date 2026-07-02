@@ -486,6 +486,8 @@ export interface DeleteAppCascadeResult {
   profilesRemoved: number;
   /** Number of `<appId>--*.yaml` blueprint files removed from the blueprints dir. */
   blueprintsRemoved: number;
+  /** Number of `app:<appId>:*` schedule rows removed from the schedules table. */
+  schedulesRemoved: number;
 }
 
 export interface DeleteAppCascadeOptions {
@@ -553,6 +555,7 @@ export async function deleteAppCascade(
     projectRemoved: false,
     profilesRemoved: 0,
     blueprintsRemoved: 0,
+    schedulesRemoved: 0,
   };
 
   const resolvedApps = path.resolve(appsDir);
@@ -577,5 +580,28 @@ export async function deleteAppCascade(
   const profilesRemoved = sweepNamespacedProfiles(profilesDir, appId);
   const blueprintsRemoved = sweepNamespacedBlueprints(blueprintsDir, appId);
 
-  return { projectRemoved, filesRemoved, profilesRemoved, blueprintsRemoved };
+  // Sweep app-owned schedule rows (`app:<appId>:*`, registered by the pack
+  // installer) so an uninstalled app's schedules don't refire into nothing.
+  // Dynamic import — this module must stay out of the DB static import graph.
+  let schedulesRemoved = 0;
+  try {
+    const { db } = await import("@/lib/db");
+    const { schedules } = await import("@/lib/db/schema");
+    const { like } = await import("drizzle-orm");
+    const result = db
+      .delete(schedules)
+      .where(like(schedules.id, `app:${appId}:%`))
+      .run();
+    schedulesRemoved = result.changes;
+  } catch (err) {
+    console.error(`[registry] schedule sweep failed for app "${appId}":`, err);
+  }
+
+  return {
+    projectRemoved,
+    filesRemoved,
+    profilesRemoved,
+    blueprintsRemoved,
+    schedulesRemoved,
+  };
 }
