@@ -609,6 +609,42 @@ describe("installPack", () => {
   });
 });
 
+describe("installPack install-state sidecar", () => {
+  it("records version + dropped-file hashes at their DEST paths after install", async () => {
+    buildFixturePack();
+    const { installPack } = await loadModules();
+    const { createHash } = await import("node:crypto");
+
+    await installPack(packDir, installOpts());
+
+    const sidecarPath = path.join(appsDir, "test-agency", "install-state.json");
+    expect(fs.existsSync(sidecarPath)).toBe(true);
+    const state = JSON.parse(fs.readFileSync(sidecarPath, "utf-8")) as {
+      packVersion: string;
+      installedAt: string;
+      files: Record<string, string>;
+    };
+
+    expect(state.packVersion).toBe("0.1.0");
+    expect(Date.parse(state.installedAt)).not.toBeNaN();
+
+    // Every dropped artifact is hashed; the machine-written manifest.yaml and
+    // consumed seed/** files are NOT (the manifest is regenerated per install).
+    expect(Object.keys(state.files).sort()).toEqual([
+      "blueprints/test-agency--weekly.yaml",
+      "profiles/test-agency--manager/SKILL.md",
+      "profiles/test-agency--manager/profile.yaml",
+    ]);
+
+    // Hashes are of the DESTINATION bytes (what the user could later edit).
+    const destBlueprint = path.join(blueprintsDir, "test-agency--weekly.yaml");
+    const expected = createHash("sha256")
+      .update(fs.readFileSync(destBlueprint))
+      .digest("hex");
+    expect(state.files["blueprints/test-agency--weekly.yaml"]).toBe(expected);
+  });
+});
+
 describe("installPack by bundled name", () => {
   it("installs a bundled template by bare name (no filesystem path)", async () => {
     buildFixturePack();

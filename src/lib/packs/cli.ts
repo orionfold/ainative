@@ -29,7 +29,7 @@ const USAGE = [
   "  add <name|path|git-url> [--license-url=<path|url>]   install a pack",
   "  list                 list installed packs",
   "  remove <id>          uninstall a pack",
-  "  update <id>          (v1 stub — editable-seed; edit in place)",
+  "  update <id> [source] [--license-url=<path|url>]      update to a newer version",
 ].join("\n");
 
 /**
@@ -73,7 +73,7 @@ export async function runPackCommand(
     case "remove":
       return runRemove(arg, io);
     case "update":
-      return runUpdate(arg, io);
+      return runUpdate(arg, rest[1], licenseUrl, io);
     default:
       io.error(`Unknown pack action: ${action ?? "(none)"}`);
       io.error(USAGE);
@@ -125,9 +125,20 @@ async function runList(io: PackCommandIo): Promise<number> {
       io.log("No packs installed.");
       return 0;
     }
+    const { packUpdateAvailability } = await import("./update");
     for (const app of apps) {
       const premium = app.entitlement ? "  [premium]" : "";
-      io.log(`${app.id}  ${app.name}  ${app.primitivesSummary}${premium}`);
+      const avail = packUpdateAvailability(app.id, { appsDir });
+      const version = avail.installedVersion
+        ? `  installed v${avail.installedVersion}`
+        : "";
+      const update =
+        avail.updateAvailable && avail.availableVersion
+          ? `  [update available → v${avail.availableVersion}]`
+          : "";
+      io.log(
+        `${app.id}  ${app.name}  ${app.primitivesSummary}${version}${update}${premium}`
+      );
     }
     return 0;
   } catch (err) {
@@ -187,14 +198,55 @@ async function runRemove(
 
 async function runUpdate(
   id: string | undefined,
+  source: string | undefined,
+  licenseUrl: string | undefined,
   io: PackCommandIo
 ): Promise<number> {
-  // v1 is editable-seed: there is no managed base to re-pull yet. The command
-  // exists so the future managed-base spec is additive (a new behavior on an
-  // existing verb), not a new verb.
-  io.log(
-    `pack update${id ? ` ${id}` : ""}: managed-base updates land in a future release. ` +
-      `v1 is editable-seed — edit the installed pack in place.`
-  );
-  return 0;
+  if (!id) {
+    io.error(
+      "Missing pack id. Usage: relay pack update <id> [source] [--license-url=<path|url>]"
+    );
+    return 1;
+  }
+  try {
+    const { updatePack } = await import("./update");
+    const report = await updatePack(id, {
+      appsDir: io.appsDir,
+      profilesDir: io.profilesDir,
+      blueprintsDir: io.blueprintsDir,
+      source,
+      licenseUrl,
+    });
+
+    if (report.upToDate) {
+      io.log(
+        `${report.packId} is already up to date (v${report.newVersion}).`
+      );
+      return 0;
+    }
+
+    const install = report.install!;
+    io.log(
+      `Updated ${report.packId} v${report.previousVersion ?? "unknown"} → v${report.newVersion}: ` +
+        `${install.tablesCreated} table(s) added (${install.rowsSeeded} row(s)), ` +
+        `${install.profilesDropped} profile(s), ` +
+        `${install.blueprintsDropped} blueprint(s), ` +
+        `${install.schedulesRegistered} schedule(s).`
+    );
+    if (report.backedUp.length > 0) {
+      io.log(
+        `Backed up ${report.backedUp.length} user-modified file(s) to ` +
+          `apps/${report.packId}/backup/${report.previousVersion ?? "unknown"}/ before overwriting:`
+      );
+      for (const relPath of report.backedUp) {
+        io.log(`  ${relPath}`);
+      }
+    }
+    return 0;
+  } catch (err) {
+    io.error(
+      `Failed to update pack: ${err instanceof Error ? err.message : String(err)}`
+    );
+    return 1;
+  }
 }

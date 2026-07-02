@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Boxes, Check, Lock, Package, TriangleAlert } from "lucide-react";
 import { listApps } from "@/lib/apps/registry";
 import { listPackTemplates, type PackTemplate } from "@/lib/packs/catalog";
+import { packUpdateAvailability } from "@/lib/packs/update";
 import { PackInstallButton } from "@/components/packs/pack-install-button";
+import { PackUpdateButton } from "@/components/packs/pack-update-button";
 
 export const dynamic = "force-dynamic";
 
@@ -103,17 +105,7 @@ function PackCard({
         )}
 
         {installed ? (
-          <div className="flex items-center justify-between pt-1">
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <Check className="h-3.5 w-3.5" aria-hidden="true" /> Installed
-            </span>
-            <Link
-              href={`/apps/${template.id}`}
-              className="text-xs font-medium text-foreground hover:text-primary"
-            >
-              Open app →
-            </Link>
-          </div>
+          <InstalledActions template={template} />
         ) : (
           <div className="flex items-end justify-between gap-2 pt-1">
             <PackInstallButton
@@ -135,6 +127,36 @@ function PackCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function InstalledActions({ template }: { template: PackTemplate }) {
+  // Server-side: one comparison source (packUpdateAvailability) drives the
+  // update affordance here, in `pack list`, and in the update API alike (D7).
+  const avail = packUpdateAvailability(template.id);
+
+  return (
+    <div className="space-y-1.5 pt-1">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+          <Check className="h-3.5 w-3.5" aria-hidden="true" /> Installed
+          {avail.installedVersion ? ` v${avail.installedVersion}` : ""}
+        </span>
+        <Link
+          href={`/apps/${template.id}`}
+          className="text-xs font-medium text-foreground hover:text-primary"
+        >
+          Open app →
+        </Link>
+      </div>
+      {avail.updateAvailable && avail.availableVersion && (
+        <PackUpdateButton
+          packId={template.id}
+          packName={template.meta!.name}
+          newVersion={avail.availableVersion}
+        />
+      )}
+    </div>
   );
 }
 

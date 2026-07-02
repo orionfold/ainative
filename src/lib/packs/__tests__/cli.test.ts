@@ -98,6 +98,17 @@ describe("runPackCommand", () => {
     expect(logs.join("\n")).toMatch(/cli-pack/);
   });
 
+  it("list: shows the installed version from the sidecar", async () => {
+    buildFixturePack();
+    const { runPackCommand } = await load();
+    await runPackCommand(["add", packDir], io());
+    logs = [];
+    const code = await runPackCommand(["list"], io());
+    expect(code).toBe(0);
+    const line = logs.find((l) => l.includes("cli-pack"));
+    expect(line).toMatch(/installed v0\.1\.0/);
+  });
+
   it("remove: uninstalls and reports", async () => {
     buildFixturePack();
     const { runPackCommand } = await load();
@@ -109,11 +120,54 @@ describe("runPackCommand", () => {
     expect(logs.join("\n").toLowerCase()).toMatch(/customers.*retained/);
   });
 
-  it("update: prints the v1 editable-seed stub message", async () => {
+  it("update: refuses a pack that is not installed, pointing at pack add", async () => {
+    buildFixturePack();
     const { runPackCommand } = await load();
-    const code = await runPackCommand(["update", "cli-pack"], io());
+    const code = await runPackCommand(["update", "cli-pack", packDir], io());
+    expect(code).toBe(1);
+    expect(errs.join("\n")).toMatch(/not installed/i);
+    expect(errs.join("\n")).toMatch(/pack add/);
+  });
+
+  it("update: reports vOLD → vNEW and backed-up files", async () => {
+    buildFixturePack();
+    const { runPackCommand } = await load();
+    await runPackCommand(["add", packDir], io());
+    logs = [];
+
+    // Bump the source to 0.2.0 (same dir edited in place, like a template bump).
+    fs.writeFileSync(
+      path.join(packDir, "pack.yaml"),
+      yaml.dump({
+        id: "cli-pack",
+        version: "0.2.0",
+        name: "CLI Pack",
+        relayCore: ">=0.15.0",
+        customers: [],
+      })
+    );
+
+    const code = await runPackCommand(["update", "cli-pack", packDir], io());
     expect(code).toBe(0);
-    expect(logs.join("\n").toLowerCase()).toMatch(/editable-seed|future release|edit in place/);
+    expect(logs.join("\n")).toMatch(/cli-pack.*v?0\.1\.0.*→.*v?0\.2\.0/);
+  });
+
+  it("update: says already up to date for a same-version source", async () => {
+    buildFixturePack();
+    const { runPackCommand } = await load();
+    await runPackCommand(["add", packDir], io());
+    logs = [];
+
+    const code = await runPackCommand(["update", "cli-pack", packDir], io());
+    expect(code).toBe(0);
+    expect(logs.join("\n").toLowerCase()).toMatch(/up to date/);
+  });
+
+  it("update: missing id errors with usage", async () => {
+    const { runPackCommand } = await load();
+    const code = await runPackCommand(["update"], io());
+    expect(code).toBe(1);
+    expect(errs.join("\n").toLowerCase()).toMatch(/usage|id/);
   });
 
   it("unknown action: errors with a non-zero code and usage", async () => {

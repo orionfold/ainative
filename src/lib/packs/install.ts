@@ -26,8 +26,9 @@ import {
 declare const __RELAY_CORE_VERSION__: string | undefined;
 
 // The current relay-core version. Kept here (not inlined) so the compat gate
-// has a single point of truth.
-function relayCoreVersion(): string {
+// has a single point of truth (also consumed by the update verb's pre-write
+// compat check).
+export function relayCoreVersion(): string {
   // 1. Bundle path: the version baked in at build time. This eliminates the
   //    runtime package.json lookup entirely in the shipped CLI — the source of
   //    the "0.0.0" bug, where the flattened dist/ layout broke the depth-based
@@ -328,11 +329,26 @@ export async function installPack(
     }
     writeManifest(appsDir, pack.meta.id, droppedManifest);
 
-    const { profilesDropped, blueprintsDropped } = dropArtifacts(
+    const { profilesDropped, blueprintsDropped, dropped } = dropArtifacts(
       resolved.files,
       profilesDir,
       blueprintsDir
     );
+
+    // 4b. Install-state sidecar — version + DEST hashes of every dropped
+    // artifact, so `pack update` can compare versions and detect user edits.
+    const { writeInstallState, hashFileSha256 } = await import(
+      "./install-state"
+    );
+    const stateFiles: Record<string, string> = {};
+    for (const artifact of dropped) {
+      stateFiles[artifact.relPath] = hashFileSha256(artifact.destPath);
+    }
+    writeInstallState(appsDir, pack.meta.id, {
+      packVersion: pack.meta.version,
+      installedAt: new Date().toISOString(),
+      files: stateFiles,
+    });
 
     // The blueprint registry caches its directory scan per process. Without
     // an invalidation here, a pack installed through the running server is
@@ -372,7 +388,9 @@ function isGitUrl(source: string): boolean {
   );
 }
 
-function acquirePack(source: string): { dir: string; cleanup: () => void } {
+export function acquirePack(
+  source: string
+): { dir: string; cleanup: () => void } {
   if (!isGitUrl(source)) {
     const resolved = path.resolve(source);
     if (!fs.existsSync(resolved)) {
@@ -526,38 +544,60 @@ function writeManifest(
 
 // ── File drop ────────────────────────────────────────────────────────
 
+/** One artifact `dropArtifacts` copied: its pack-space relPath + real dest. */
+export interface DroppedArtifact {
+  relPath: string;
+  destPath: string;
+}
+
+/**
+ * Map a droppable pack file to its destination, or null for files that are
+ * consumed rather than dropped (seed/**). Single source for install AND the
+ * update path's backup step — both must agree on where an artifact lands.
+ */
+export function artifactDestPath(
+  relPath: string,
+  profilesDir: string,
+  blueprintsDir: string
+): string | null {
+  if (relPath.startsWith("profiles/")) {
+    return path.join(profilesDir, relPath.slice("profiles/".length));
+  }
+  if (relPath.startsWith("blueprints/") && relPath.endsWith(".yaml")) {
+    return path.join(blueprintsDir, relPath.slice("blueprints/".length));
+  }
+  return null;
+}
+
 function dropArtifacts(
   files: ResolvedPackFile[],
   profilesDir: string,
   blueprintsDir: string
-): { profilesDropped: number; blueprintsDropped: number } {
+): {
+  profilesDropped: number;
+  blueprintsDropped: number;
+  dropped: DroppedArtifact[];
+} {
   const profileDirs = new Set<string>();
   let blueprintsDropped = 0;
+  const dropped: DroppedArtifact[] = [];
 
   for (const file of files) {
+    const dest = artifactDestPath(file.relPath, profilesDir, blueprintsDir);
+    if (!dest) continue; // seed/** is consumed during the DB write, not dropped.
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(file.absPath, dest);
+    dropped.push({ relPath: file.relPath, destPath: dest });
     if (file.relPath.startsWith("profiles/")) {
-      const dest = path.join(profilesDir, file.relPath.slice("profiles/".length));
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(file.absPath, dest);
       // Count distinct top-level profile dirs (<appId>--<name>).
       const top = file.relPath.split("/")[1];
       if (top) profileDirs.add(top);
-    } else if (
-      file.relPath.startsWith("blueprints/") &&
-      file.relPath.endsWith(".yaml")
-    ) {
-      const dest = path.join(
-        blueprintsDir,
-        file.relPath.slice("blueprints/".length)
-      );
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(file.absPath, dest);
+    } else {
       blueprintsDropped += 1;
     }
-    // seed/** is consumed during the DB write, not dropped.
   }
 
-  return { profilesDropped: profileDirs.size, blueprintsDropped };
+  return { profilesDropped: profileDirs.size, blueprintsDropped, dropped };
 }
 
 // ── Small util (local; same shape as compose-integration's titleCase) ──
