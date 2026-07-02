@@ -22,6 +22,7 @@ import {
   resolveNextEntrypoint,
   resolveSidecarPort,
 } from "../src/lib/desktop/sidecar-launch";
+import { ensurePrebuilt } from "../src/lib/desktop/prebuilt-download";
 import { getAinativeDataDir, getAinativeDbPath } from "../src/lib/utils/ainative-paths";
 import {
   bootstrapAinativeDatabase,
@@ -326,6 +327,34 @@ async function main() {
         break;
       }
       searchDir = dirname(searchDir);
+    }
+  }
+
+  // 6.5. First run of a released version: fetch the CI-built production
+  // `.next` from the GitHub Release so we can `next start` instead of
+  // `next dev` (#10 — fixes the HMR-socket (#7) / dev-warning (#8) /
+  // dev-origin-gate class). Skipped in the canonical dev repo (isDevMode —
+  // there is no release asset for unpublished versions, and extracting into
+  // the working tree would clobber local builds). Any failure is loud and
+  // falls back to today's dev-mode launch — never a blocked start.
+  if (!existsSync(join(effectiveCwd, ".next", "BUILD_ID")) && !isDevMode(launchCwd)) {
+    try {
+      await ensurePrebuilt({
+        version: pkg.version,
+        effectiveCwd,
+        buildsDir: join(DATA_DIR, "builds"),
+        artifactUrlOverride: process.env.RELAY_BUILD_ARTIFACT_URL,
+        log: (message) => console.log(message),
+      });
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : String(e);
+      console.warn(
+        `⚠ Could not set up the production build (${reason}).\n` +
+          `Falling back to development mode for this run — Relay still works, ` +
+          `but slower and with dev-mode console noise. Check your network (the ` +
+          `build downloads once per version from GitHub Releases) and re-run, ` +
+          `or set RELAY_BUILD_ARTIFACT_URL to a mirror.`,
+      );
     }
   }
 

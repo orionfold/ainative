@@ -47,6 +47,8 @@ _REFER/
 
 # local package artifacts
 ainative-*.tgz
+orionfold-relay-*.tgz
+dist-artifacts/
 supabase/.temp/
 
 # superpowers skill scratch output (local only)

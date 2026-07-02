@@ -4,6 +4,18 @@
 
 This project was formerly published as `stagent` on npm and hosted at `github.com/manavsehgal/stagent`. As of 2026-04-17 it is `ainative`. The old GitHub URL redirects permanently; `stagent` on npm is deprecated with an upgrade pointer to `ainative`.
 
+## [0.16.0] — 2026-07-01
+
+### Added
+
+- **`npx orionfold-relay` now runs a real production build** ([#10](https://github.com/orionfold/relay/issues/10)) — every install previously ran Next.js in development mode, the root cause of a whole class of first-impression problems: the endlessly retrying HMR websocket console spam ([#7](https://github.com/orionfold/relay/issues/7)), the `Can't resolve <dynamic>` warning ([#8](https://github.com/orionfold/relay/issues/8)), a "Mode: development" banner on a released install, slower on-demand compilation, and the dev-only cross-origin gate behind the LAN-access reports (#5/#6/#11/#12/#13). On the first launch of a version, the CLI now downloads that release's CI-built production bundle (~36 MB, once per version, cached under your data directory in `builds/`) from GitHub Releases, verifies its checksum, and starts in production mode. The npm package itself stays small (~1.4 MB). If the download fails — offline, firewalled — Relay prints a clear warning and falls back to dev mode exactly as before, so the floor is the status quo; `RELAY_BUILD_ARTIFACT_URL` can point at a mirror (or a local file) for air-gapped setups.
+
+### Changed
+
+- **LAN use no longer depends on the dev-origin allowlist** — with the production build, `/_next/*` assets serve cross-origin without Next's dev-mode origin gate, which durably fixes the `--hostname 0.0.0.0` → other-machine topology (the 0.15.5 RFC1918 allowlist remains only for the dev-mode fallback path).
+- **`next` is now pinned exactly** (16.2.4) so the downloaded production bundle always matches the runtime version your install resolves — you run the same bits CI built and smoke-tested.
+- **Release CI now rehearses a real customer install before publishing** — every release packs the npm tarball, installs it into a clean directory, boots it against the freshly built production bundle, and checks the LAN cross-origin and download-failure paths. A release that fails this rehearsal never reaches npm.
+
 ## [0.15.5] — 2026-07-01
 
 ### Fixed

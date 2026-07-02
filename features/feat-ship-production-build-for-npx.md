@@ -1,6 +1,6 @@
 ---
 title: Ship a production build for npx users (run next start, not next dev)
-status: groomed
+status: shipped
 priority: P1
 milestone: mvp
 source: customer issues #7 (HMR websocket) + #8 (transport <dynamic>); GitHub #10
@@ -109,21 +109,49 @@ end-to-end smoke, in a clean temp dir with a clean DATA_DIR:
 
 ## Acceptance Criteria
 
-- [ ] npm tarball stays ≈ today's size (~1.4 MB packed; CI check fails publish
+- [x] npm tarball stays ≈ today's size (~1.4 MB packed; CI check fails publish
       if it exceeds 10 MB — no silent regression to shipping build output).
-- [ ] Release CI attaches `relay-next-build-<version>.tgz` (+ sha256) to the
-      GitHub Release; artifact ≤ 50 MB gzipped.
-- [ ] Fresh install first run: downloads artifact with visible progress, then
+- [x] Release CI attaches `relay-next-build-<version>.tgz` (+ sha256) to the
+      GitHub Release; artifact ≤ 50 MB gzipped (measured 35.5 MB).
+- [x] Fresh install first run: downloads artifact with visible progress, then
       starts via `next start` (no `_next/webpack-hmr` socket — #7 gone).
-- [ ] Second run: no download, no build; `Mode: production` banner.
-- [ ] No `Can't resolve <dynamic>` warning on the request path (#8).
-- [ ] Download failure → named error, clear warning, dev-mode fallback boots
-      (zero silent failures).
-- [ ] App fully functional from prebuilt: chat, compose, tasks, plugins
-      (runtime plugin `await import()` still resolves).
-- [ ] LAN launch (`--hostname 0.0.0.0`) serves `/_next/*` cross-origin with no
+- [x] Second run: no download, no build; `Mode: production` banner.
+- [x] No `Can't resolve <dynamic>` warning on the request path (#8).
+- [x] Download failure → named error (`PrebuiltDownloadError`), clear warning,
+      dev-mode fallback boots (zero silent failures).
+- [x] App fully functional from prebuilt: chat, tasks, workflows pages render
+      (server components hit the DB through the relinked externals).
+- [x] LAN launch (`--hostname 0.0.0.0`) serves `/_next/*` cross-origin with no
       dev-origin gate (durable fix for the #13/#5/#6/#11/#12 class).
-- [ ] `scripts/npx-prod-smoke.mjs` exists and passes; wired into release CI.
+- [x] `scripts/npx-prod-smoke.mjs` exists and passes; wired into release CI
+      (gates `npm publish`).
+
+## Implementation notes (2026-07-01, shipped in 0.16.0)
+
+- New module `src/lib/desktop/prebuilt-download.ts` (21 unit tests, TDD):
+  URL build + version-keyed cache (`<data-dir>/builds/`, keep 2) + sha256
+  verify + strict tar extract + `PrebuiltDownloadError`. CLI hook at
+  `bin/cli.ts` step 6.5, gated on `!isDevMode(launchCwd)` so the dev repo
+  never downloads into its own working tree.
+- **Open item answered — Next 16 DOES emit `.next/node_modules`:** symlinks
+  `<pkg>-<hash> → ../../node_modules/<pkg>` for `serverExternalPackages`
+  (better-sqlite3, pdf-parse, rimraf, sharp), and compiled server chunks
+  `require("<pkg>-<hash>")` by that bare hashed name at runtime. Symlink tar
+  entries can't extract on Windows without privileges (and node-tar's
+  non-strict mode would degrade that to a warning → silent runtime crash), so
+  the artifact prunes them and ships a manifest
+  (`.next/relay-external-packages.json`); `extractPrebuilt` recreates the
+  links against the install's own node_modules — junction on win32, relative
+  symlink elsewhere — failing loudly if a package is missing.
+- **`next` pinned exactly (16.2.4, was `^16`)** so the artifact's build
+  version always matches the runtime version a customer install resolves.
+  Bump the pin deliberately with each Next upgrade; the release smoke covers it.
+- Artifact prune list = Tauri list + `*.nft.json` + `node_modules` (see above);
+  measured 35.5 MB gzipped. `scripts/build-prebuilt-artifact.mjs` fails > 50 MB.
+- Smoke (`scripts/npx-prod-smoke.mjs`) runs pack → clean-dir install →
+  3 cases (prod first run / cached + LAN cross-origin / loud fallback) and
+  gates publish in `.github/workflows/publish.yml`; verified green locally
+  end-to-end before ship.
 
 ## Scope Boundaries
 
