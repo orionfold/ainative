@@ -4,6 +4,20 @@
 
 This project was formerly published as `stagent` on npm and hosted at `github.com/manavsehgal/stagent`. As of 2026-04-17 it is `ainative`. The old GitHub URL redirects permanently; `stagent` on npm is deprecated with an upgrade pointer to `ainative`.
 
+## [0.17.0] — 2026-07-01
+
+### Added
+
+- **Relay now remembers your license** — previously a premium-pack license was verified once at install and then forgotten: every launch still greeted you as "Community Edition," and every premium install demanded `--license-url` again. Redeeming is now a one-time act: `relay license add <path-or-url from your fulfilment email>` verifies the license (offline, Ed25519 — no server contact, ever), saves it under your data directory (`licenses/`), and walks you through an activation summary: who it's licensed to, what it unlocks, and where it lives. From then on, entitled packs install with a plain `relay pack add` — no flags — and every launch greets you by name: `Orionfold Relay 0.17.0 — Licensed to <you>`.
+- **`relay license status`** shows your saved licenses with identity, term, seats, and entitlements — re-verified live at read time, so what it says is what the verifier actually concludes. Approaching expiry (≤30 days) shows a renewal reminder; expiry never blocks anything you already installed.
+- **`relay license remove <id>`** forgets a saved license. Installed packs stay installed — your packs are yours forever; a license only gates *new* premium installs and updates.
+- **`relay pack list` marks premium packs** with a `[premium]` tag so you can tell licensed content from free packs at a glance.
+- **README "Free vs paid" section** — the boundary in writing: the engine is free (Apache-2.0, no tiers, no feature locks), premium packs are paid content on top, verification is offline, and what's free stays free.
+
+### Changed
+
+- The "missing license" refusal for premium packs now points at `relay license add` (redeem once) as the primary path, with `--license-url` retained as a per-install alternative.
+
 ## [0.16.0] — 2026-07-01
 
 ### Added
