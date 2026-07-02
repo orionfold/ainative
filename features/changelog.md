@@ -1,5 +1,38 @@
 # Feature Changelog
 
+## 2026-07-01 — feat-agency-pro-pack open questions resolved (installer-semantics check)
+
+Ran the installPack semantics check the spec called for; all four open questions are now
+resolved decisions in the spec. (1) **Standalone** — tables are project-scoped
+(`install.ts:182,201`) and the view rewrite covers only the pack's own tables, so cross-pack
+table reads silently break; Pro ships everything it references. (2) **Pricing already live** —
+$499/$349/$149 Stripe prices + orionfold.com/relay storefront (strategy channel, 2026-07-01);
+`price: "$499/year"`, `purchaseUrl: https://orionfold.com/relay/`. (3) **Batch = agent-level
+iteration** — blueprints have no loop construct; workflow agents get relay MCP table tools, so
+one run iterates the table. (4) **CRE-first** (operator); nonprofit deep chapter = v0.2.0 first
+paid update, exercising the D4 update path. The check also surfaced **two latent engine gaps**,
+both now in-scope as free D5 engine work: (0a) pack-authored `row-insert` triggers never fire —
+`rewriteTableRefs` skips `blueprints[].trigger.table` while dispatch matches the real table UUID
+(`manifest-trigger-dispatch.ts:153`); (0b) `installPack` never registers `manifest.schedules` as
+DB schedule rows, so pack schedules are display-only and `scheduleNextFire` reads null. Operator
+chose to ship installer schedule support in this scope (0b) rather than defer to a UI-setup step.
+
+## 2026-07-01 — groomed feat-agency-pro-pack (PLG-2b) for 0.19.0
+
+Groomed `_SPECS/plg-refine.md` §5 PLG-2b ("author the first real premium pack") into
+`features/feat-agency-pro-pack.md` from the Agency Pro brainstorm. Positioning: the free pack
+sells the verbs (click-to-run blueprints), Pro sells the operating system — five chapters, all
+pure composition of existing primitives: (1) finance cockpit (ledger kit + tableSumWindowed/ratio
+KPIs + scheduled month-end close), (2) intake pipelines (row-insert triggered blueprints),
+(3) new-business machine, (4) governance as content (hardened canUseToolPolicy profiles, audit
+export, ollama local-only variants), (5) CRE + nonprofit deep chapters (SKILL.md methodology =
+the D4 renewal engine). P0 — every conversion mechanism shipped in 0.15–0.18 has a null numerator
+until this exists. Zero engine changes in scope (D5: missing capabilities ship free separately).
+Four operator decisions gate the build: standalone-vs-add-on (needs an installPack collision/
+absence semantics check), price/purchaseUrl strings, batch-across-clients feasibility, and
+CRE-first vs both verticals in v0.1.0. Acceptance = full Naya-path Mode C staging run from the
+packed tarball (loopback + LAN) with the real prod-signed license.
+
 ## 2026-07-01 — shipped feat-graduation-surface (PLG-2a) as 0.18.0
 
 Implemented same-session after grooming (below): bundled-pack catalog + `price`/`purchaseUrl`

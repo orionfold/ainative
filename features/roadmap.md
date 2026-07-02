@@ -496,6 +496,7 @@ into customer-link.
 | [fix-dashboard-budget-vs-cost-labeling](fix-dashboard-budget-vs-cost-labeling.md) | P1 | planned | — |
 | [fix-pack-install-discoverability](fix-pack-install-discoverability.md) | P1 | absorbed → [feat-graduation-surface](feat-graduation-surface.md) | fix-pack-core-version-resolution |
 | [feat-graduation-surface](feat-graduation-surface.md) | P1 | done | feat-license-lifecycle |
+| [feat-agency-pro-pack](feat-agency-pro-pack.md) | P0 | planned | feat-graduation-surface, feat-license-lifecycle |
 | [fix-chat-spend-metering-diagnose](fix-chat-spend-metering-diagnose.md) | P1 | planned | — |
 | [fix-inbox-checkpoint-realtime](fix-inbox-checkpoint-realtime.md) | P2 | planned | — |
 
